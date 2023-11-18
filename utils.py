@@ -1,6 +1,12 @@
 import openai
 import json
 import os
+import re
+
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
 
 openai.api_key = os.environ["OPENAI_API_KEY"]
 
@@ -93,3 +99,50 @@ def generate_chatgpt_answer(user_id: int, prompt: str) -> str:
     # Handle errors
     except Exception as ex:
         return f"Error due to {ex}"
+    
+
+def send_email(to_address: str, subject: str, body: str):
+    # NEED TO SETUP EMAIL CREDENTIALS
+    smtp_server = "smtp.gmail.com" # ASSUME WE ARE USING GMAIL ENGINE
+    smtp_port = 587
+    smtp_username = os.environ["SENDER_EMAIL_ADDRESS"]   # EXAMPLE USAGE
+    smtp_password = os.environ["EMAISENDER_EMAIL_PASS"]  # EXAMPLE USAGE
+
+
+    msg = MIMEMultipart()
+    msg['From'] = smtp_username
+    msg['To'] = to_address
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+
+    # CONNECT TO SMTP AND SEND EMAIL
+    with smtplib.SMTP(smtp_server, smtp_port) as server:
+        server.starttls()
+        server.login(smtp_username, smtp_password)
+        server.sendmail(smtp_username, to_address, msg.as_string())
+    
+
+def send_contact_number_to_email(phone: str):
+    receiver = os.environ["RECEIVER_EMAIL_ADDRESS"]  # EXAMPLE USAGE
+    subject = "Contact number of candidate"
+    body = f"The contact number of candidate is: {phone}" # CAN BE REFORMED USING HTML CONTENT
+
+    send_email(receiver, subject, body)
+    
+
+def check_contact_number(text: str):
+    
+    # Validaiton for  phone number format
+    patterns = [
+        r'\+(\d{1,2})\((\d{3})\)(\d{3}-\d{2}-\d{2})',   # +7(123)456-78-90
+    ]
+    
+    for pattern in patterns:
+        match = re.search(pattern, text)
+        if match:
+            # IF MATHED PHONE IS FOUND, EMAIL SEND FUNCTION CAN BE CALLED
+            send_contact_number_to_email(match.group(0))
+            return True
+
+    return False
+
