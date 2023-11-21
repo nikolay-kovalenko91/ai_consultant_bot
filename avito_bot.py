@@ -49,7 +49,6 @@ def end_conversation(reply_message, chat_id):
         "Content-Type": "application/json",
     }
 
-    response = requests.post(send_message_api_endpoint, headers=headers, json=payload)
     payload = {"message": {"text": reply_message}, "type": "text"}
     response = requests.post(send_message_api_endpoint, headers=headers, json=payload)
 
