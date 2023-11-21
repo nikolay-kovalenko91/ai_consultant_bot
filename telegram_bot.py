@@ -1,12 +1,11 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 import json
 import os
 
 import telebot
 
-import utils
-from utils import generate_chatgpt_answer
+import message_handler
+from utils import check_contact_number
+from message_handler import generate_chatgpt_answer
 
 
 Bot = telebot.TeleBot(os.environ["BOT_TOKEN"])
@@ -95,19 +94,35 @@ def handle_messages(message: callable) -> None:
             parse_mode="MarkdownV2",
         )
 
-        # Fetch results from function
-        result = generate_chatgpt_answer(user_id, user_prompt)
+        
+        # Pass sent message through check phone number function
+        phone_status = check_contact_number(user_prompt)
 
-        # Edit waiting message and answer user message
-        Bot.edit_message_text(
-            chat_id=message.chat.id,
-            message_id=gpt_prompt.message_id,
-            text=utils.escape_markdown(result),
-            parse_mode="MarkdownV2",
-        )
+        # If message is phone number end conversation, else send message to GPT
+        if phone_status:
+           
+            Bot.edit_message_text(
+                chat_id=message.chat.id,
+                message_id=gpt_prompt.message_id,
+                text="Спасибо, в рабочее время мы с вами свяжемся, пригласим на собеседование и предложим работу\.\.\.",
+                parse_mode="MarkdownV2",
+            )
+
+        else:
+        
+            # Fetch results from function
+            result = generate_chatgpt_answer(user_id, user_prompt)
+
+            # Edit waiting message and answer user message
+            Bot.edit_message_text(
+                chat_id=message.chat.id,
+                message_id=gpt_prompt.message_id,
+                text=message_handler.escape_markdown(result),
+                parse_mode="MarkdownV2",
+            )
 
     # Handle private chat
-    elif utils.force_private(message):
+    elif message_handler.force_private(message):
         # Send waiting message
         Bot.send_chat_action(chat_id=message.chat.id, action="typing")
         gpt_prompt = Bot.reply_to(
@@ -116,17 +131,31 @@ def handle_messages(message: callable) -> None:
             parse_mode="MarkdownV2",
         )
 
-        # Fetch results from function
-        result = generate_chatgpt_answer(user_id, user_prompt)
-        result = "[Empty Result]" if not result else result
+        # Pass sent message through check phone number function
+        phone_status = check_contact_number(user_prompt)
 
-        # Answer user message
-        Bot.edit_message_text(
-            chat_id=message.chat.id,
-            message_id=gpt_prompt.message_id,
-            text=utils.escape_markdown(result),
-            parse_mode="MarkdownV2",
-        )
+        # If message is phone number end conversation, else send message to GPT
+        if phone_status:
+
+            Bot.edit_message_text(
+                chat_id=message.chat.id,
+                message_id=gpt_prompt.message_id,
+                text="Спасибо, в рабочее время мы с вами свяжемся, пригласим на собеседование и предложим работу\.\.\.",
+                parse_mode="MarkdownV2",
+            )
+        else:
+
+            # Fetch results from function
+            result = generate_chatgpt_answer(user_id, user_prompt)
+            result = "[Empty Result]" if not result else result
+
+            # Answer user message
+            Bot.edit_message_text(
+                chat_id=message.chat.id,
+                message_id=gpt_prompt.message_id,
+                text=message_handler.escape_markdown(result),
+                parse_mode="MarkdownV2",
+            )
 
 
 # Connect to bot
