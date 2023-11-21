@@ -19,7 +19,7 @@ def send_email(to_address, subject, body):
     msg["To"] = to_address
     msg["Subject"] = subject
     msg.attach(MIMEText(body, "plain"))
-    
+
     # CONNECT TO SMTP AND SEND EMAIL
     with smtplib.SMTP(smtp_server, smtp_port) as server:
         server.starttls()
@@ -28,7 +28,7 @@ def send_email(to_address, subject, body):
 
 
 def send_toker_error(status_code, response):
-    receiver = os.environ["RECEIVER_EMAIL_ADDRESS"] 
+    receiver = os.environ["RECEIVER_EMAIL_ADDRESS"]
     subject = "Contact number of candidate"
     body = f"Failed to get access token. Status code: {status_code}, Response: {response}"  # CAN BE REFORMED USING HTML CONTENT
 
@@ -93,4 +93,3 @@ def read_access_token():
     with open("temp/token.json", "r") as file:
         data = json.load(file)
         return data.get("access", {}).get("token", "")
-    

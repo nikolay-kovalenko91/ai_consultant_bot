@@ -93,7 +93,7 @@ def handle_messages(message: callable) -> None:
             text="Думаю над ответом\.\.\.",
             parse_mode="MarkdownV2",
         )
-     
+
         # Pass sent message through check phone number function
         phone_status = check_contact_number(user_prompt)
 
