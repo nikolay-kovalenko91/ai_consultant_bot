@@ -121,7 +121,6 @@ def get_new_messages():
         # MESSAGE CAN BE SEND TO EMAIL
         print(f"API call failed with status code {response.status_code}")
 
-
 if __name__ == '__main__':
     while True:
         get_new_messages()
