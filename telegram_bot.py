@@ -93,14 +93,12 @@ def handle_messages(message: callable) -> None:
             text="Думаю над ответом\.\.\.",
             parse_mode="MarkdownV2",
         )
-
-        
+     
         # Pass sent message through check phone number function
         phone_status = check_contact_number(user_prompt)
 
         # If message is phone number end conversation, else send message to GPT
         if phone_status:
-           
             Bot.edit_message_text(
                 chat_id=message.chat.id,
                 message_id=gpt_prompt.message_id,
@@ -109,7 +107,6 @@ def handle_messages(message: callable) -> None:
             )
 
         else:
-        
             # Fetch results from function
             result = generate_chatgpt_answer(user_id, user_prompt)
 
@@ -136,7 +133,6 @@ def handle_messages(message: callable) -> None:
 
         # If message is phone number end conversation, else send message to GPT
         if phone_status:
-
             Bot.edit_message_text(
                 chat_id=message.chat.id,
                 message_id=gpt_prompt.message_id,
@@ -144,7 +140,6 @@ def handle_messages(message: callable) -> None:
                 parse_mode="MarkdownV2",
             )
         else:
-
             # Fetch results from function
             result = generate_chatgpt_answer(user_id, user_prompt)
             result = "[Empty Result]" if not result else result
