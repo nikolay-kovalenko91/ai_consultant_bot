@@ -2,4 +2,3 @@ pyTelegramBotAPI
 requests
 openai
 secure-smtplib
-

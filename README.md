@@ -14,7 +14,7 @@ This bot response to every message with ChatGpt prompt (excluding commands)
 Then you have to install requirements before running bot
 1. Navigate to bot directory
 2. Create virtual environment if needed
-3. Install requirements using pip
+3. Instgit sall requirements using pip
 ```bash
 pip install -r requirements.txt
 ```
@@ -27,11 +27,11 @@ BOT_TOKEN: Telegram API key
 OPENAI_API_KEY: ChatGPT API key
 SYSTEM_PROMPT: ChatGPT system prompt
 ```
-
 <br>
 
 # ▋Launch the bot
 Now you are ready to launch your bot in polling mode inside your terminal using python
+
 ```bash
 python main.py
 ```

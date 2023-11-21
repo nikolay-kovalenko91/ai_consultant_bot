@@ -93,3 +93,4 @@ def generate_chatgpt_answer(user_id: int, prompt: str) -> str:
     # Handle errors
     except Exception as ex:
         return f"Error due to {ex}"
+    

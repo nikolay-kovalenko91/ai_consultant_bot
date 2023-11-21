@@ -105,3 +105,4 @@ def read_access_token():
     with open('temp/token.json', 'r') as file:
         data = json.load(file)
         return data.get('access', {}).get('token', '')
+    
