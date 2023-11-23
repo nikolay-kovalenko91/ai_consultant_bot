@@ -22,4 +22,5 @@ Bot.set_my_commands(
         types.BotCommand(command="reset", description="Сбросить историю чата"),
     ]
 )
+
 print("[!] Commands successfully configured.\n[!] Run main.py")

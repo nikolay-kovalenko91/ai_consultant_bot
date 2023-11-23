@@ -1,56 +1,21 @@
 import os
 import openai
 import json
+import re
+from utils import send_contact
 
 openai.api_key = os.environ["OPENAI_API_KEY"]
 
 
-def escape_markdown(string: str) -> str:
-    """
-    Function to escape markdown syntax
-    """
-
-    return (
-        string.replace("_", "\_")
-        .replace("*", "\*")
-        .replace("[", "\[")
-        .replace("]", "\]")
-        .replace("(", "\(")
-        .replace(")", "\)")
-        .replace("~", "\~")
-        .replace(">", "\>")
-        .replace("#", "\#")
-        .replace("+", "\+")
-        .replace("-", "\-")
-        .replace("=", "\=")
-        .replace("|", "\|")
-        .replace("{", "\{")
-        .replace("}", "\}")
-        .replace(".", "\.")
-        .replace("!", "\!")
-        .replace(",", "\,")
-    )
-
-
-def force_private(message: callable) -> bool:
-    """
-    Function to force chat into private chat
-    """
-    if message.chat.type == "private":
-        return True
-
-    return False
-
-
-def generate_chatgpt_answer(user_id: int, prompt: str) -> str:
+def generate_chatgpt_answer(user_id: int, prompt: str, engine: str) -> str:
     """
     Chat GPT function
     """
 
     try:
         # Make sure user have account, even if it not started bot.
-        folder_path = f"Accounts/{user_id}"
-        file_path = f"Accounts/{user_id}/history.json"
+        folder_path = f"history/{engine}/{user_id}"
+        file_path = f"history/{engine}/{user_id}/history.json"
 
         if not os.path.exists(folder_path):
             os.mkdir(folder_path)
@@ -93,3 +58,18 @@ def generate_chatgpt_answer(user_id: int, prompt: str) -> str:
     # Handle errors
     except Exception as ex:
         return f"Error due to {ex}"
+
+
+def check_contact_number(text: str):
+    # Validaiton for  phone number format
+    patterns = [
+        r"\+(\d{1,2})\((\d{3})\)(\d{3}-\d{2}-\d{2})",  # +7(123)456-78-90
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text)
+        if match:
+            # If phone is matched to validation, send it to email
+            send_contact(match.group(0))
+            return True
+
+    return False

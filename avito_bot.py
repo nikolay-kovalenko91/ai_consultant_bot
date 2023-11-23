@@ -1,122 +1,240 @@
 import requests
 import time
 import os
-from utils import get_access_token, check_contact_number, read_access_token
-from message_handler import generate_chatgpt_answer
-import message_handler
+import argparse
+import logging
+from utils import send_token_error
+from message_handler import generate_chatgpt_answer, check_contact_number
+
+# Configure logging
+logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
+
+AVITO_USER_ID = os.environ["AVITO_USER_ID"]
+ACCESS_TOKEN = None
+SLEEP_TIME = 10
 
 
-user_id = os.environ["AVITO_USER_ID"]
+def parse_args():
+    """
+    Function to parse command-line arguments
+    """
+    parser = argparse.ArgumentParser(description="Get messaged only")
+    parser.add_argument("--dry", action="store_true", help="Run in dry mode")
+    return parser.parse_args()
 
 
-def send_message_back(reply_message, chat_id):
-    send_message_api_endpoint = f"https://api.avito.ru/messenger/v1/accounts/{user_id}/chats/{chat_id}/messages"
+def get_access_token() -> None:
+    """
+    Function to get new access token
+    """
+    global ACCESS_TOKEN
 
-    access_token = read_access_token()
+    client_id = os.environ["AVITO_CLIENT_ID"]
+    client_secret = os.environ["AVITO_CLIENT_SECRET"]
+    grant_type = "client_credentials"  # fixed value
 
-    headers = {
-        "Authorization": f"Bearer {access_token}",
-        "Content-Type": "application/json",
+    # Set up headers
+    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+
+    # Params
+    data = {
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "grant_type": grant_type,
     }
 
-    payload = {"message": {"text": reply_message}, "type": "text"}
+    # Make the API call
     response = requests.post(
-        send_message_api_endpoint, headers=headers, json=payload
+        "https://api.avito.ru/token", headers=headers, data=data
     )
 
     if response.status_code == 200:
-        return None
-    elif response.status_code == 403:
-        # Handle 403 error by calling another function and trying the API call again
-        print("NEED TO GET NEW TOKEN")
-        get_access_token()
-        send_message_back(reply_message, chat_id)
+        # Save the token to token.json in the desired format
+        access_token = response.json().get("access_token")
+        ACCESS_TOKEN = access_token
     else:
-        # MESSAGE CAN BE SEND TO EMAIL
-        print(f"API call failed with status code {response.status_code}")
-        return None
+        send_token_error(response.status_code, response.text)
+        logging.error("Could not get Token")
 
 
-def end_conversation(reply_message, chat_id):
-    send_message_api_endpoint = f"https://api.avito.ru/messenger/v1/accounts/{user_id}/chats/{chat_id}/messages"
+def send_message_back(reply_message: str, chat_id: str) -> None:
+    """
+    Function to send message back to user
+    """
 
-    access_token = read_access_token()
+    # If access token is none get new one
+    if ACCESS_TOKEN is None:
+        get_access_token()
 
+    # Set up headers
     headers = {
-        "Authorization": f"Bearer {access_token}",
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
         "Content-Type": "application/json",
     }
 
+    # Prepare the payload
     payload = {"message": {"text": reply_message}, "type": "text"}
+
+    # Make the API call
     response = requests.post(
-        send_message_api_endpoint, headers=headers, json=payload
+        (
+            f"https://api.avito.ru/messenger/v1/accounts/{AVITO_USER_ID}/"
+            f"chats/{chat_id}/messages"
+        ),
+        headers=headers,
+        json=payload,
     )
 
+    # Check the response status
     if response.status_code == 200:
-        return None
+        logging.info("API call successful.")
     elif response.status_code == 403:
-        # Handle 403 error by calling another function and trying the API call again
-        print("NEED TO GET NEW TOKEN")
+        # Handle 403 error by calling  function and call api back
+        logging.warning("Need to get token")
         get_access_token()
         send_message_back(reply_message, chat_id)
     else:
-        # MESSAGE CAN BE SEND TO EMAIL
-        print(f"API call failed with status code {response.status_code}")
-        return None
+        logging.error(
+            f"API call failed with status code {response.status_code}"
+        )
+
+
+def end_conversation(reply_message: str, chat_id: str) -> None:
+    """
+    Function to end conversation after getting phone number
+    """
+
+    # If access token is none get new one
+    if ACCESS_TOKEN is None:
+        get_access_token()
+
+    # Set up headers
+    headers = {
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
+        "Content-Type": "application/json",
+    }
+
+    # Prepare the payload
+    payload = {"message": {"text": reply_message}, "type": "text"}
+
+    # Make the API call
+    response = requests.post(
+        (
+            f"https://api.avito.ru/messenger/v1/accounts/{AVITO_USER_ID}/"
+            f"chats/{chat_id}/messages"
+        ),
+        headers=headers,
+        json=payload,
+    )
+
+    # Check the response status
+    if response.status_code == 200:
+        logging.info("API call successful.")
+    elif response.status_code == 403:
+        # Handle 403 error by calling  function and call api back
+        logging.warning("Need to get token")
+        get_access_token()
+        send_message_back(reply_message, chat_id)
+    else:
+        logging.error(
+            f"API call failed with status code {response.status_code}"
+        )
+
+
+def dry_run() -> None:
+    """
+    Actions to perform in dry run mode
+    """
+    logging.info("Running in dry mode. Performing dry run actions...")
+    while True:
+        get_new_messages()
+        logging.info("API has been called")
+        time.sleep(SLEEP_TIME)
+
+
+def regular_run() -> None:
+    """
+    Actions to perform in regular mode
+    """
+    while True:
+        get_new_messages()
+        logging.info("API has been called")
+        time.sleep(SLEEP_TIME)
 
 
 def get_new_messages():
-    query = "unread_only=true"
+    """
+    Function to get new messages from Avito
+    """
 
-    chats_api_endpoint = (
-        f"https://api.avito.ru/messenger/v2/accounts/{user_id}/chats{query}"
+    # If access token is None, obtain a new one
+    if ACCESS_TOKEN is None:
+        get_access_token()
+
+    # Set up headers for API request
+    headers = {"Authorization": f"Bearer {ACCESS_TOKEN}"}
+
+    # Make the API call
+    response = requests.get(
+        (
+            f"https://api.avito.ru/messenger/v2/accounts/{AVITO_USER_ID}/"
+            f"chats?unread_only=true"
+        ),
+        headers=headers,
     )
 
-    access_token = read_access_token()
-
-    headers = {"Authorization": f"Bearer {access_token}"}
-    response = requests.get(chats_api_endpoint, headers=headers)
-
+    # Check the response status
     if response.status_code == 200:
-        full_messages = response.json()
-        print(full_messages)
+        # Iterate through each message in the response
+        for message in response.json()["chats"]:
+            try:
+                chat_id = message["id"]
+                message_content = message["last_message"]["content"]["text"]
 
-        for each_message in full_messages["chats"]:
-            # SEND MESSAGE TO GPT FUNCTION NEEDS TO BE CALLED FOR EACH NEW MESSAGE
-            chat_id = each_message["id"]
-            message_content = each_message["last_message"]["content"]["link"][
-                "text"
-            ]
+                # Send message to user only in regular mode
+                if not args.dry:
+                    # Check contact number and in the message
+                    phone_status = check_contact_number(message_content)
+                    if phone_status:
+                        end_message = (
+                            "Спасибо, в рабочее время мы с вами свяжемся!"
+                        )
+                        end_conversation(end_message)
+                    else:
+                        # Generate a response from GPT and send it back
+                        result = generate_chatgpt_answer(
+                            user_id=chat_id,
+                            prompt=message_content,
+                            engine="avito",
+                        )
+                        send_message_back(result, chat_id)
+                else:
+                    # Log message and chat_id in dry run mode
+                    logging.info(
+                        (f"Dry run mode: -> " f"Message: {message_content}")
+                    )
+            except Exception as e:
+                logging.error(f"Error processing a message: {e}")
 
-            # user_id  -->  chat_id
-            # prompt   -->  message_content
-
-            phone_status = check_contact_number(message_content, chat_id)
-            if phone_status:
-                end_message = (
-                    "Thanks for your time! We will get you touch very soon!"
-                )
-                end_conversation(end_message)
-            else:
-                result = generate_chatgpt_answer(chat_id, message_content)
-                send_message_back(
-                    message_handler.escape_markdown(result), chat_id
-                )
-
-    # IF TOKEN IS EXPIRED GET NEW TOKEN
+    # If token gets expired (403 Forbidden)
     elif response.status_code == 403:
-        # Handle 403 error by calling another function and trying the API call again
-        print("NEED TO GET NEW TOKEN")
+        # Handle 403 error by calling  function and call api back
+        logging.warning("Need to get token")
         get_access_token()
         get_new_messages()
 
     else:
-        # MESSAGE CAN BE SEND TO EMAIL
-        print(f"API call failed with status code {response.status_code}")
+        # Log errors for other status codes
+        logging.error(
+            f"API call failed with status code {response.status_code}"
+        )
 
 
 if __name__ == "__main__":
-    while True:
-        get_new_messages()
-        print("API HAS BEEEN CALLED")
-        time.sleep(10)  # Sleep for 10 seconds
+    args = parse_args()
+
+    # Check if --dry flag is present
+    if args.dry:
+        dry_run()
+    else:
+        regular_run()
