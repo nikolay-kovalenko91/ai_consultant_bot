@@ -57,7 +57,7 @@ python telegram_bot.py
 To launch the Avito bot, use:
 
 ```bash
-python python avito_bot.py
+python avito_bot.py
 ```
 
 To see logs without sending actual API calls, run the Avito bot in dry mode:
