@@ -198,7 +198,6 @@ def get_new_messages():
                         end_message = (
                             "Спасибо, в рабочее время мы с вами свяжемся!"
                         )
-
                         # end_conversation(end_message)
                         logging.info(
                             (f"Message: -> "f"Messagae sent: -> {end_message}")
