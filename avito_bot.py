@@ -190,7 +190,6 @@ def get_new_messages():
             try:
                 chat_id = message["id"]
                 message_content = message["last_message"]["content"]["text"]
-
                 # Send message to user only in regular mode
                 if not args.dry:
                     # Check contact number and in the message
@@ -199,7 +198,11 @@ def get_new_messages():
                         end_message = (
                             "Спасибо, в рабочее время мы с вами свяжемся!"
                         )
-                        end_conversation(end_message)
+
+                        # end_conversation(end_message)
+                        logging.info(
+                            (f"Message: -> "f"Messagae sent: -> {end_message}")
+                        )
                     else:
                         # Generate a response from GPT and send it back
                         result = generate_chatgpt_answer(
@@ -207,7 +210,14 @@ def get_new_messages():
                             prompt=message_content,
                             engine="avito",
                         )
-                        send_message_back(result, chat_id)
+                        if result.startswith("Error"):
+                            logging.error((f"GPT Message Error: -> {result}"))
+                            continue
+
+                        # send_message_back(result, chat_id)
+                        logging.info(
+                            (f"Message: -> " f"Messagae sent: -> {result}")
+                        )
                 else:
                     # Log message and chat_id in dry run mode
                     logging.info(
