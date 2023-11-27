@@ -171,6 +171,18 @@ def get_new_messages():
     if ACCESS_TOKEN is None:
         get_access_token()
 
+    base_folder = "history"
+    sub_folder = "avito"
+    path = os.path.join(base_folder, sub_folder)
+
+    # Check if the base folder exists
+    if not os.path.exists(base_folder):
+        os.makedirs(base_folder)
+
+    # Check if the sub folder exists
+    if not os.path.exists(path):
+        os.makedirs(path)
+
     # Set up headers for API request
     headers = {"Authorization": f"Bearer {ACCESS_TOKEN}"}
 
@@ -198,14 +210,8 @@ def get_new_messages():
                         end_message = (
                             "Спасибо, в рабочее время мы с вами свяжемся!"
                         )
-
-                        # end_conversation(end_message)
-                        logging.info(
-                            (
-                                f"Message: -> "
-                                f"Messagae sent: -> {end_message}"
-                            )
-                        )
+                        end_conversation(end_message)
+                        logging.info((f"GPT Message: ->  {end_message}"))
                     else:
                         # Generate a response from GPT and send it back
                         result = generate_chatgpt_answer(
@@ -217,15 +223,27 @@ def get_new_messages():
                             logging.error((f"GPT Message Error: -> {result}"))
                             continue
 
-                        # send_message_back(result, chat_id)
-                        logging.info(
-                            (f"Message: -> " f"Messagae sent: -> {result}")
-                        )
+                        send_message_back(result, chat_id)
+                        logging.info((f"GPT Message: ->  {result}"))
                 else:
-                    # Log message and chat_id in dry run mode
-                    logging.info(
-                        (f"Dry run mode: -> " f"Message: {message_content}")
-                    )
+                    phone_status = check_contact_number(message_content)
+                    if phone_status:
+                        end_message = (
+                            "Спасибо, в рабочее время мы с вами свяжемся!"
+                        )
+                        logging.info((f"GPT Message: ->  {end_message}"))
+                    else:
+                        # Generate a response from GPT and send it back
+                        result = generate_chatgpt_answer(
+                            user_id=chat_id,
+                            prompt=message_content,
+                            engine="avito",
+                        )
+                        if result.startswith("Error"):
+                            logging.error((f"GPT Message Error: -> {result}"))
+                            continue
+
+                        logging.info((f"GPT Message: ->  {result}"))
             except Exception as e:
                 logging.error(f"Error processing a message: {e}")
 
