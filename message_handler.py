@@ -56,9 +56,9 @@ def generate_chatgpt_answer(user_id: int, prompt: str, engine: str) -> str:
         return gpt_result
 
     # Handle errors
-    except Exception as ex:
+    except Exception:
         raise
-        #print(f"Error due to {ex}")
+        # print(f"Error due to {ex}")
 
 
 def check_contact_number(text: str):
