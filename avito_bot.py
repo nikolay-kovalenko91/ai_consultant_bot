@@ -211,39 +211,50 @@ def get_new_messages():
                             "Спасибо, в рабочее время мы с вами свяжемся!"
                         )
                         end_conversation(end_message)
-                        logging.info((f"GPT Message: ->  {end_message}"))
+                        logging.info(
+                            (f"GPT Message: ->  {end_message}")
+                        )
                     else:
                         # Generate a response from GPT and send it back
-                        result = generate_chatgpt_answer(
-                            user_id=chat_id,
-                            prompt=message_content,
-                            engine="avito",
-                        )
-                        if result.startswith("Error"):
-                            logging.error((f"GPT Message Error: -> {result}"))
-                            continue
+                        try:
+                            result = generate_chatgpt_answer(
+                                user_id=chat_id,
+                                prompt=message_content,
+                                engine="avito",
+                            )
 
-                        send_message_back(result, chat_id)
-                        logging.info((f"GPT Message: ->  {result}"))
+                            send_message_back(result, chat_id)
+                            logging.info(
+                                (f"GPT Message: ->  {result}")
+                            )
+                        except Exception as e:
+                            logging.error(
+                            (f"GPT Error due to -> {e}")
+                            )
                 else:
                     phone_status = check_contact_number(message_content)
                     if phone_status:
                         end_message = (
                             "Спасибо, в рабочее время мы с вами свяжемся!"
                         )
-                        logging.info((f"GPT Message: ->  {end_message}"))
+                        logging.info(
+                           (f"GPT Message: ->  {end_message}")
+                        )
                     else:
                         # Generate a response from GPT and send it back
-                        result = generate_chatgpt_answer(
-                            user_id=chat_id,
-                            prompt=message_content,
-                            engine="avito",
-                        )
-                        if result.startswith("Error"):
-                            logging.error((f"GPT Message Error: -> {result}"))
-                            continue
-
-                        logging.info((f"GPT Message: ->  {result}"))
+                        try:
+                            result = generate_chatgpt_answer(
+                                user_id=chat_id,
+                                prompt=message_content,
+                                engine="avito",
+                            )
+                            logging.info(
+                                (f"GPT Message: ->  {result}")
+                            )
+                        except Exception as e:
+                            logging.error(
+                                (f"GPT Error due to -> {e}")
+                            )
             except Exception as e:
                 logging.error(f"Error processing a message: {e}")
 
