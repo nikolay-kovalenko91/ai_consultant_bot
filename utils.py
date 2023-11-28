@@ -7,8 +7,8 @@ from constants import (
     SMTP_PORT,
     SMTP_PASSWORD,
     EMAIL_RECEIVER,
-    EMAIL_CONTACT_MESSAGE_SUBJECT,
-    EMAIL_CONTACT_MESSAGE_BODY,
+    CLOSING_MESSAGE_SUBJECT,
+    CLOSING_MESSAGE_BODY,
 )
 
 
@@ -36,6 +36,6 @@ def send_contact(phone: str) -> None:
     """
     send_email(
         EMAIL_RECEIVER,
-        EMAIL_CONTACT_MESSAGE_SUBJECT,
-        f"{EMAIL_CONTACT_MESSAGE_BODY} {phone}",
+        CLOSING_MESSAGE_SUBJECT,
+        f"{CLOSING_MESSAGE_BODY} {phone}",
     )

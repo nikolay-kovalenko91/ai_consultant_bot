@@ -7,7 +7,6 @@ from message_handler import generate_chatgpt_answer
 from constants import (
     CLIENT_ID,
     CLIENT_SECRET,
-    GRAND_TYPE,
     AVITO_USER_ID,
     BASE_FOLDER,
     SUB_FOLDER,
@@ -16,6 +15,7 @@ from constants import (
 
 # Configure logging
 logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
+ACCESS_TOKEN = None
 
 
 def parse_args():
@@ -40,7 +40,7 @@ def get_access_token() -> None:
     data = {
         "client_id": CLIENT_ID,
         "client_secret": CLIENT_SECRET,
-        "grant_type": GRAND_TYPE,
+        "grant_type": "client_credentials",
     }
 
     # Make the API call
@@ -148,16 +148,23 @@ def get_new_messages():
                         engine="avito",
                     )
                     send_message_back(result, chat_id)
-                    logging.info((f"GPT Message: ->  {result}"))
+                    logging.info(f"GPT Message: ->  {result}")
                 else:
                     result = generate_chatgpt_answer(
                         user_id=chat_id,
                         prompt=message_content,
                         engine="avito",
                     )
-                    logging.info((f"GPT Message: ->  {result}"))
+                    logging.info(f"GPT Message: ->  {result}")
             except Exception as e:
-                logging.error(f"Error processing a message: {e}")
+                logging.error(
+                    (
+                        "Error occured in proccess: "
+                        f"chat_id = {chat_id}, "
+                        f"message_content = {message_content},"
+                        f"error: {e}"
+                    )
+                )
 
     # If token gets expired (403 Forbidden)
     elif response.status_code == 403:

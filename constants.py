@@ -1,14 +1,12 @@
 import os
 
 # Config
-ACCESS_TOKEN = None
 POLLING_INTERVAL = int(os.environ.get("POLLING_INTERVAL", 10))
 
 # Avito
 AVITO_USER_ID = os.environ["AVITO_USER_ID"]
 CLIENT_ID = os.environ["AVITO_CLIENT_ID"]
 CLIENT_SECRET = os.environ["AVITO_CLIENT_SECRET"]
-GRAND_TYPE = "client_credentials"  # fixed value
 
 # Telegram
 TELEGRAM_BOT_TOKEN = os.environ["BOT_TOKEN"]
@@ -29,7 +27,7 @@ SUB_FOLDER = "avito"
 
 # Email message const
 EMAIL_RECEIVER = os.environ["RECEIVER_EMAIL_ADDRESS"]
-EMAIL_CONTACT_MESSAGE_SUBJECT = "Номер кандидата"
-EMAIL_CONTACT_MESSAGE_BODY = "Контактный номер кандидата:"
+CLOSING_MESSAGE_SUBJECT = "Номер кандидата"
+CLOSING_MESSAGE_BODY = "Контактный номер кандидата:"
 
-END_MESSAGE = "Спасибо, в рабочее время мы с вами свяжемся!"
+CLOSING_MESSAGE = "Спасибо, в рабочее время мы с вами свяжемся!"

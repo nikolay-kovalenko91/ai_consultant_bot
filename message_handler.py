@@ -3,8 +3,10 @@ import openai
 import json
 import re
 from utils import send_contact
-from constants import OPENAI_API_KEY, END_MESSAGE, SYSTEM_PROMPT
+from constants import OPENAI_API_KEY, CLOSING_MESSAGE, SYSTEM_PROMPT
 import logging
+from typing import List, Dict
+
 
 logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
 
@@ -12,7 +14,7 @@ logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
 openai.api_key = OPENAI_API_KEY
 
 
-def check_contact_number(text: str):
+def check_contact_number(text: str) -> bool:
     # Validaiton for  phone number format
     patterns = [
         # +7(123)456-78-90
@@ -28,6 +30,22 @@ def check_contact_number(text: str):
             return True
 
     return False
+
+
+def openai_chat_completion(history: List[Dict[str, str]]) -> str:
+    """
+    Generates a chat completion using the OpenAI API
+    """
+    completion = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=history,
+    )
+    logging.debug(
+        f'{completion["usage"]["prompt_tokens"]} prompt tokens counted by'
+        " the OpenAI API."
+    )
+
+    return completion.choices[0].message.content
 
 
 def generate_chatgpt_answer(user_id: int, prompt: str, engine: str) -> str:
@@ -58,21 +76,14 @@ def generate_chatgpt_answer(user_id: int, prompt: str, engine: str) -> str:
 
     # Check if text is valid phone number or not
     if check_contact_number(prompt):
-        history.append({"role": "assistant", "content": END_MESSAGE})
+        history.append({"role": "assistant", "content": CLOSING_MESSAGE})
         with open(file_path, "w") as file:
             json.dump(history, file, indent=2, ensure_ascii=False)
-        return END_MESSAGE
+        return CLOSING_MESSAGE
 
-    completion = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=history,
-    )
-    logging.debug(
-        f'{completion["usage"]["prompt_tokens"]} prompt tokens counted by'
-        " the OpenAI API."
-    )
+    # Else case text will be sent to GPT
+    gpt_result = openai_chat_completion(history)
 
-    gpt_result = completion.choices[0].message.content
     # Add GPT prompt to history
     history.append({"role": "assistant", "content": gpt_result})
 
