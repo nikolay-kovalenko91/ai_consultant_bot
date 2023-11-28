@@ -52,9 +52,7 @@ def generate_chatgpt_answer(user_id: int, prompt: str, engine: str) -> str:
         history = json.load(file)
 
     if len(history) == 0:
-        history.append(
-            {"role": "system", "content": SYSTEM_PROMPT}
-        )
+        history.append({"role": "system", "content": SYSTEM_PROMPT})
 
     history.append({"role": "user", "content": prompt})
 

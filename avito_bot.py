@@ -4,7 +4,15 @@ import os
 import argparse
 import logging
 from message_handler import generate_chatgpt_answer
-from constants import *
+from constants import (
+    CLIENT_ID,
+    CLIENT_SECRET,
+    GRAND_TYPE,
+    AVITO_USER_ID,
+    BASE_FOLDER,
+    SUB_FOLDER,
+    POLLING_INTERVAL,
+)
 
 # Configure logging
 logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
@@ -87,7 +95,10 @@ def send_message_back(reply_message: str, chat_id: str) -> None:
         send_message_back(reply_message, chat_id)
     else:
         logging.error(
-            f"Send message back is failed. Error: {response.text}. Payload: {payload}"
+            (
+                "Send message back is failed. "
+                f"Error: {response.text}. Payload: {payload}"
+            )
         )
 
 
@@ -136,7 +147,7 @@ def get_new_messages():
                         prompt=message_content,
                         engine="avito",
                     )
-                    #send_message_back(result, chat_id)
+                    # send_message_back(result, chat_id)
                     logging.info((f"GPT Message: ->  {result}"))
                 else:
                     result = generate_chatgpt_answer(
@@ -158,7 +169,10 @@ def get_new_messages():
     else:
         # Log errors for other status codes
         logging.error(
-            f"API call failed with status code {response.status_code}. Error message: {response.text}"
+            (
+                "API call failed with status code"
+                f" {response.status_code}. Error message: {response.text}"
+            )
         )
 
 
