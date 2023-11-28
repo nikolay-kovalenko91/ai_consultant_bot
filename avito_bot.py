@@ -147,7 +147,7 @@ def get_new_messages():
                         prompt=message_content,
                         engine="avito",
                     )
-                    # send_message_back(result, chat_id)
+                    send_message_back(result, chat_id)
                     logging.info((f"GPT Message: ->  {result}"))
                 else:
                     result = generate_chatgpt_answer(
