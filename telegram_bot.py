@@ -2,12 +2,16 @@ import json
 import os
 
 import telebot
+import logging
 
-from message_handler import generate_chatgpt_answer, check_contact_number
+from message_handler import generate_chatgpt_answer
+from constants import TELEGRAM_BOT_TOKEN
 
 
-Bot = telebot.TeleBot(os.environ["BOT_TOKEN"])
-print(f"The Bot is online (id: {Bot.get_me().id})...")
+Bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
+logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
+
+logging.debug(f"The Bot is online (id: {Bot.get_me().id})...")
 
 
 def escape_markdown(string: str) -> str:
@@ -121,27 +125,15 @@ def handle_messages(message: callable) -> None:
         message.reply_to_message
         and message.reply_to_message.from_user.id == Bot.get_me().id
     ):
-        # Send waiting message
-        Bot.send_chat_action(chat_id=message.chat.id, action="typing")
-        gpt_prompt = Bot.reply_to(
-            message=message,
-            text="Думаю над ответом\.\.\.",
-            parse_mode="MarkdownV2",
-        )
-
-        # Pass sent message through check phone number function
-        phone_status = check_contact_number(user_prompt)
-
-        # If message is phone number end conversation, else send message to GPT
-        if phone_status:
-            Bot.edit_message_text(
-                chat_id=message.chat.id,
-                message_id=gpt_prompt.message_id,
-                text="Спасибо, в рабочее время мы с вами свяжемся!\.\.\.",
+        try:
+            # Send waiting message
+            Bot.send_chat_action(chat_id=message.chat.id, action="typing")
+            gpt_prompt = Bot.reply_to(
+                message=message,
+                text="Думаю над ответом\.\.\.",
                 parse_mode="MarkdownV2",
             )
 
-        else:
             # Fetch results from function
             result = generate_chatgpt_answer(
                 user_id=user_id, prompt=user_prompt, engine="telegram"
@@ -154,29 +146,20 @@ def handle_messages(message: callable) -> None:
                 text=escape_markdown(result),
                 parse_mode="MarkdownV2",
             )
+        except Exception as e:
+            logging.error(f"Error: {e}")
 
     # Handle private chat
     elif force_private(message):
-        # Send waiting message
-        Bot.send_chat_action(chat_id=message.chat.id, action="typing")
-        gpt_prompt = Bot.reply_to(
-            message=message,
-            text="Думаю над ответом\.\.\.",
-            parse_mode="MarkdownV2",
-        )
-
-        # Pass sent message through check phone number function
-        phone_status = check_contact_number(user_prompt)
-
-        # If message is phone number end conversation, else send message to GPT
-        if phone_status:
-            Bot.edit_message_text(
-                chat_id=message.chat.id,
-                message_id=gpt_prompt.message_id,
-                text="Спасибо, в рабочее время мы с вами свяжемся!\.\.\.",
+        try:
+            # Send waiting message
+            Bot.send_chat_action(chat_id=message.chat.id, action="typing")
+            gpt_prompt = Bot.reply_to(
+                message=message,
+                text="Думаю над ответом\.\.\.",
                 parse_mode="MarkdownV2",
             )
-        else:
+
             # Fetch results from function
             result = generate_chatgpt_answer(
                 user_id=user_id, prompt=user_prompt, engine="telegram"
@@ -190,11 +173,13 @@ def handle_messages(message: callable) -> None:
                 text=escape_markdown(result),
                 parse_mode="MarkdownV2",
             )
+        except Exception as e:
+            logging.error(f"Error: {e}")
 
 
 # Connect to bot
 if __name__ == "__main__":
     try:
         Bot.infinity_polling(timeout=10, long_polling_timeout=5)
-    except Exception:
-        print("Lost connection!")
+    except Exception as e:
+        logging.error(f"Lost connection! {e}")

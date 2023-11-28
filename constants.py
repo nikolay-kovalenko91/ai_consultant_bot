@@ -1,0 +1,35 @@
+import os
+
+# Config
+ACCESS_TOKEN = None
+POLLING_INTERVAL = int(os.environ.get("POLLING_INTERVAL", 10))
+
+# Avito
+AVITO_USER_ID = os.environ["AVITO_USER_ID"]
+CLIENT_ID = os.environ["AVITO_CLIENT_ID"]
+CLIENT_SECRET = os.environ["AVITO_CLIENT_SECRET"]
+GRAND_TYPE = "client_credentials"  # fixed value
+
+# Telegram
+TELEGRAM_BOT_TOKEN = os.environ["BOT_TOKEN"]
+
+# OpenAI
+OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
+SYSTEM_PROMPT = os.environ["SYSTEM_PROMPT"]
+
+# Email credentials
+SMTP_SERVER = os.environ.get("SMTP_SERVER", "smtp.gmail.com")
+SMTP_PORT = os.environ.get("SMTP_SERVER_PORT", 587)
+SMTP_EMAIL = os.environ["SENDER_EMAIL_ADDRESS"]
+SMTP_PASSWORD = os.environ["SENDER_EMAIL_PASS"]
+
+# Folder names
+BASE_FOLDER = "history"
+SUB_FOLDER = "avito"
+
+# Email message const
+EMAIL_RECEIVER = os.environ["RECEIVER_EMAIL_ADDRESS"]
+EMAIL_CONTACT_MESSAGE_SUBJECT = "Номер кандидата"
+EMAIL_CONTACT_MESSAGE_BODY = "Контактный номер кандидата:"
+
+END_MESSAGE = "Спасибо, в рабочее время мы с вами свяжемся!"
