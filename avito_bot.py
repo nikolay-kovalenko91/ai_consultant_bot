@@ -55,7 +55,7 @@ def get_access_token() -> None:
         logging.error(f"Token error : {response.status_code}, {response.text}")
 
 
-def send_message_back(reply_message: str, chat_id: str) -> None:
+def send_message_back(reply_message: str, chat_id: str, retry=True) -> None:
     """
     Function to send message back to user
     """
@@ -88,11 +88,11 @@ def send_message_back(reply_message: str, chat_id: str) -> None:
         logging.info(
             f"Message from chat_id = {chat_id} successfully answered "
         )
-    elif response.status_code == 403:
+    elif response.status_code == 403 and retry:
         # Handle 403 error by calling  function and call api back
         logging.debug("Need to get token")
         get_access_token()
-        send_message_back(reply_message, chat_id)
+        send_message_back(reply_message, chat_id, retry=False)
     else:
         logging.error(
             (
@@ -147,7 +147,7 @@ def get_new_messages():
                         prompt=message_content,
                         engine="avito",
                     )
-                    send_message_back(result, chat_id)
+                    send_message_back(result, chat_id, retry=True)
                     logging.info(f"GPT Message: ->  {result}")
                 else:
                     result = generate_chatgpt_answer(

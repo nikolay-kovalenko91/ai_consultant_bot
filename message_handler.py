@@ -32,7 +32,7 @@ def check_contact_number(text: str) -> bool:
     return False
 
 
-def openai_chat_completion(history: List[Dict[str, str]]) -> str:
+def get_chat_completion(history: List[Dict[str, str]]) -> str:
     """
     Generates a chat completion using the OpenAI API
     """
@@ -82,7 +82,7 @@ def generate_chatgpt_answer(user_id: int, prompt: str, engine: str) -> str:
         return CLOSING_MESSAGE
 
     # Else case text will be sent to GPT
-    gpt_result = openai_chat_completion(history)
+    gpt_result = get_chat_completion(history)
 
     # Add GPT prompt to history
     history.append({"role": "assistant", "content": gpt_result})
