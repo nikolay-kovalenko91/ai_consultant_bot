@@ -184,6 +184,7 @@ def handle_messages(message: callable) -> None:
         except Exception:
             logging.exception("Error sending tg message")
 
+
 # Connect to bot
 if __name__ == "__main__":
     path = os.path.join(BASE_FOLDER, SUB_FOLDER_TG)

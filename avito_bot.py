@@ -95,8 +95,8 @@ def send_message_back(reply_message: str, chat_id: str, retry=True) -> None:
         send_message_back(reply_message, chat_id, retry=False)
     else:
         logging.error(
-                "Send message back is failed. "
-                f"Error: {response.text}. Payload: {payload}"
+            "Send message back is failed. "
+            f"Error: {response.text}. Payload: {payload}"
         )
 
 

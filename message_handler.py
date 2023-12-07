@@ -4,10 +4,11 @@ import json
 import re
 from utils import send_contact
 from constants import (
-    OPENAI_API_KEY, 
-    CLOSING_MESSAGE, 
+    OPENAI_API_KEY,
+    CLOSING_MESSAGE,
     SYSTEM_PROMPT,
-    BASE_FOLDER)
+    BASE_FOLDER,
+)
 import logging
 from typing import List, Dict
 
