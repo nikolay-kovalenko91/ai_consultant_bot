@@ -128,19 +128,16 @@ def get_new_messages(retry=True):
                 message_content = message["last_message"]["content"]["text"]
                 # Send message to user only in regular mode
                 result = generate_chatgpt_answer(
-                        user_id=chat_id,
-                        prompt=message_content,
-                        engine="avito",
+                    user_id=chat_id,
+                    prompt=message_content,
+                    engine="avito",
                 )
                 if not args.dry:
                     send_message_back(result, chat_id, retry=True)
-                logging.info(f"GPT answers: '{message_content}' -> '{result}'")                 
-            except Exception as e:
+                logging.info(f"GPT answers: '{message_content}' -> '{result}'")
+            except Exception:
                 logging.exception(
-                    (
-                        "Error occured in proccess: "
-                        f"message:{message}"
-                    )
+                    ("Error occured in proccess: " f"message:{message}")
                 )
 
     # If token gets expired (403 Forbidden)
@@ -153,13 +150,12 @@ def get_new_messages(retry=True):
     else:
         # Log errors for other status codes
         logging.error(
-                "API call failed with status code"
-                f" {response.status_code}. Error message: {response.text}"
+            "API call failed with status code"
+            f" {response.status_code}. Error message: {response.text}"
         )
 
 
 if __name__ == "__main__":
-
     path = os.path.join(BASE_FOLDER, SUB_FOLDER)
 
     # Check if the base folder exists
