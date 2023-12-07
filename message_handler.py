@@ -48,7 +48,7 @@ def get_chat_completion(history: List[Dict[str, str]]) -> str:
     return completion.choices[0].message.content
 
 
-def generate_chatgpt_answer(user_id: int, prompt: str, engine: str) -> str:
+def generate_chatgpt_answer(user_id: str, prompt: str, engine: str) -> str:
     """
     Chat GPT function
     """

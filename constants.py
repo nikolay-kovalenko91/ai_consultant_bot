@@ -4,6 +4,7 @@ import os
 POLLING_INTERVAL = int(os.environ.get("POLLING_INTERVAL", 10))
 
 # Avito
+
 AVITO_USER_ID = os.environ["AVITO_USER_ID"]
 CLIENT_ID = os.environ["AVITO_CLIENT_ID"]
 CLIENT_SECRET = os.environ["AVITO_CLIENT_SECRET"]
@@ -24,6 +25,7 @@ SMTP_PASSWORD = os.environ["SENDER_EMAIL_PASS"]
 # Folder names
 BASE_FOLDER = "history"
 SUB_FOLDER = "avito"
+SUB_FOLDER_TG = "telegram"
 
 # Email message const
 EMAIL_RECEIVER = os.environ["RECEIVER_EMAIL_ADDRESS"]

@@ -5,8 +5,12 @@ import telebot
 import logging
 
 from message_handler import generate_chatgpt_answer
-from constants import TELEGRAM_BOT_TOKEN
-
+from constants import (
+    TELEGRAM_BOT_TOKEN, 
+    POLLING_INTERVAL,
+    BASE_FOLDER,
+    SUB_FOLDER_TG
+    )
 
 Bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
@@ -60,7 +64,7 @@ def start_command_handler(message: callable) -> None:
     user_id = f"{message.from_user.first_name}_{message.from_user.id}"
 
     # Check if the user account exists
-    if os.path.exists(f"history/telegram/{user_id}"):
+    if os.path.exists(f"{BASE_FOLDER}/{SUB_FOLDER_TG}/{user_id}"):
         # Send welcome back message to existing user
         Bot.send_chat_action(chat_id=message.chat.id, action="typing")
         Bot.reply_to(
@@ -74,8 +78,8 @@ def start_command_handler(message: callable) -> None:
 
     else:
         # Create user account for new member
-        os.mkdir(f"history/telegram/{user_id}")
-        with open(f"history/telegram/{user_id}/history.json", "w") as file:
+        os.mkdir(f"{BASE_FOLDER}/{SUB_FOLDER_TG}/{user_id}")
+        with open(f"{BASE_FOLDER}/{SUB_FOLDER_TG}/{user_id}/history.json", "w") as file:
             json.dump([], file)
 
         # Send welcome back message to existing user
@@ -100,7 +104,7 @@ def gpt_command_handler(message: callable) -> None:
     user_id = f"{message.from_user.first_name}_{message.from_user.id}"
 
     # Clear history
-    with open(f"history/telegram/{user_id}/history.json", "w") as file:
+    with open(f"{BASE_FOLDER}/{SUB_FOLDER_TG}/{user_id}/history.json", "w") as file:
         json.dump([], file)
 
     # Send message to user
@@ -147,7 +151,7 @@ def handle_messages(message: callable) -> None:
                 parse_mode="MarkdownV2",
             )
         except Exception as e:
-            logging.error(f"Error: {e}")
+            logging.exception("Error sending tg message")
 
     # Handle private chat
     elif force_private(message):
@@ -174,12 +178,22 @@ def handle_messages(message: callable) -> None:
                 parse_mode="MarkdownV2",
             )
         except Exception as e:
-            logging.error(f"Error: {e}")
+            logging.exception("Error sending tg message")
 
 
 # Connect to bot
 if __name__ == "__main__":
+    path = os.path.join(BASE_FOLDER, SUB_FOLDER_TG)
+
+    # Check if the base folder exists
+    if not os.path.exists(BASE_FOLDER):
+        os.makedirs(BASE_FOLDER)
+
+    # Check if the sub folder exists
+    if not os.path.exists(path):
+        os.makedirs(path)
+
     try:
-        Bot.infinity_polling(timeout=10, long_polling_timeout=5)
+        Bot.polling(interval=POLLING_INTERVAL)
     except Exception as e:
-        logging.error(f"Lost connection! {e}")
+        logging.exception("Error sending tg message")

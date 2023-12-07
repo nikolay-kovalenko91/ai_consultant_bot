@@ -85,7 +85,7 @@ def send_message_back(reply_message: str, chat_id: str, retry=True) -> None:
 
     # Check the response status
     if response.status_code == 200:
-        logging.info(
+        logging.debug(
             f"Message from chat_id = {chat_id} successfully answered "
         )
     elif response.status_code == 403 and retry:
@@ -102,24 +102,10 @@ def send_message_back(reply_message: str, chat_id: str, retry=True) -> None:
         )
 
 
-def get_new_messages():
+def get_new_messages(retry=True):
     """
     Function to get new messages from Avito
     """
-
-    # If access token is None, obtain a new one
-    if ACCESS_TOKEN is None:
-        get_access_token()
-
-    path = os.path.join(BASE_FOLDER, SUB_FOLDER)
-
-    # Check if the base folder exists
-    if not os.path.exists(BASE_FOLDER):
-        os.makedirs(BASE_FOLDER)
-
-    # Check if the sub folder exists
-    if not os.path.exists(path):
-        os.makedirs(path)
 
     # Set up headers for API request
     headers = {"Authorization": f"Bearer {ACCESS_TOKEN}"}
@@ -141,54 +127,54 @@ def get_new_messages():
                 chat_id = message["id"]
                 message_content = message["last_message"]["content"]["text"]
                 # Send message to user only in regular mode
+                result = generate_chatgpt_answer(
+                        user_id=chat_id,
+                        prompt=message_content,
+                        engine="avito",
+                )
                 if not args.dry:
-                    result = generate_chatgpt_answer(
-                        user_id=chat_id,
-                        prompt=message_content,
-                        engine="avito",
-                    )
                     send_message_back(result, chat_id, retry=True)
-                    logging.info(f"GPT Message: ->  {result}")
-                else:
-                    result = generate_chatgpt_answer(
-                        user_id=chat_id,
-                        prompt=message_content,
-                        engine="avito",
-                    )
-                    logging.info(f"GPT Message: ->  {result}")
+                logging.info(f"GPT answers: '{message_content}' -> '{result}'")                 
             except Exception as e:
-                logging.error(
+                logging.exception(
                     (
                         "Error occured in proccess: "
-                        f"chat_id = {chat_id}, "
-                        f"message_content = {message_content},"
-                        f"error: {e}"
+                        f"message:{message}"
                     )
                 )
 
     # If token gets expired (403 Forbidden)
-    elif response.status_code == 403:
+    elif response.status_code == 403 and retry:
         # Handle 403 error by calling  function and call api back
         logging.debug("Need to get token")
         get_access_token()
-        get_new_messages()
+        get_new_messages(retry=False)
 
     else:
         # Log errors for other status codes
         logging.error(
-            (
                 "API call failed with status code"
                 f" {response.status_code}. Error message: {response.text}"
-            )
         )
 
 
 if __name__ == "__main__":
+
+    path = os.path.join(BASE_FOLDER, SUB_FOLDER)
+
+    # Check if the base folder exists
+    if not os.path.exists(BASE_FOLDER):
+        os.makedirs(BASE_FOLDER)
+
+    # Check if the sub folder exists
+    if not os.path.exists(path):
+        os.makedirs(path)
+
     args = parse_args()
 
     if args.dry:
         logging.info("Running in dry mode. Performing dry run actions...")
     while True:
-        get_new_messages()
+        get_new_messages(retry=True)
         logging.debug("API has been called")
         time.sleep(POLLING_INTERVAL)
