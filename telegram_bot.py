@@ -144,7 +144,7 @@ def handle_messages(message: callable) -> None:
 
             # Fetch results from function
             result = generate_chatgpt_answer(
-                user_id=user_id, prompt=user_prompt, engine="telegram"
+                user_id=user_id, prompt=user_prompt, engine=SUB_FOLDER_TG
             )
 
             # Edit waiting message and answer user message
@@ -154,8 +154,8 @@ def handle_messages(message: callable) -> None:
                 text=escape_markdown(result),
                 parse_mode="MarkdownV2",
             )
-        except Exception as e:
-            logging.exception(f"Error sending tg message: {e}")
+        except Exception:
+            logging.exception("Error sending tg message")
 
     # Handle private chat
     elif force_private(message):
@@ -170,7 +170,7 @@ def handle_messages(message: callable) -> None:
 
             # Fetch results from function
             result = generate_chatgpt_answer(
-                user_id=user_id, prompt=user_prompt, engine="telegram"
+                user_id=user_id, prompt=user_prompt, engine=SUB_FOLDER_TG
             )
             result = "[Empty Result]" if not result else result
 
@@ -181,9 +181,8 @@ def handle_messages(message: callable) -> None:
                 text=escape_markdown(result),
                 parse_mode="MarkdownV2",
             )
-        except Exception as e:
-            logging.exception(f"Error sending tg message: {e}")
-
+        except Exception:
+            logging.exception("Error sending tg message")
 
 # Connect to bot
 if __name__ == "__main__":
@@ -199,5 +198,5 @@ if __name__ == "__main__":
 
     try:
         Bot.polling(interval=POLLING_INTERVAL)
-    except Exception as e:
-        logging.exception(f"Error sending tg message: {e}")
+    except Exception:
+        logging.exception("Error sending tg message")

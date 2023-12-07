@@ -9,7 +9,7 @@ from constants import (
     CLIENT_SECRET,
     AVITO_USER_ID,
     BASE_FOLDER,
-    SUB_FOLDER,
+    SUB_FOLDER_AVITO,
     POLLING_INTERVAL,
 )
 
@@ -95,10 +95,8 @@ def send_message_back(reply_message: str, chat_id: str, retry=True) -> None:
         send_message_back(reply_message, chat_id, retry=False)
     else:
         logging.error(
-            (
                 "Send message back is failed. "
                 f"Error: {response.text}. Payload: {payload}"
-            )
         )
 
 
@@ -130,14 +128,14 @@ def get_new_messages(retry=True):
                 result = generate_chatgpt_answer(
                     user_id=chat_id,
                     prompt=message_content,
-                    engine="avito",
+                    engine=SUB_FOLDER_AVITO,
                 )
                 if not args.dry:
                     send_message_back(result, chat_id, retry=True)
                 logging.info(f"GPT answers: '{message_content}' -> '{result}'")
             except Exception:
                 logging.exception(
-                    ("Error occured in proccess: " f"message:{message}")
+                    "Error occured in proccess: " f"message:{message}"
                 )
 
     # If token gets expired (403 Forbidden)
@@ -156,7 +154,7 @@ def get_new_messages(retry=True):
 
 
 if __name__ == "__main__":
-    path = os.path.join(BASE_FOLDER, SUB_FOLDER)
+    path = os.path.join(BASE_FOLDER, SUB_FOLDER_AVITO)
 
     # Check if the base folder exists
     if not os.path.exists(BASE_FOLDER):

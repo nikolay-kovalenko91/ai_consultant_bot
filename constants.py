@@ -24,7 +24,7 @@ SMTP_PASSWORD = os.environ["SENDER_EMAIL_PASS"]
 
 # Folder names
 BASE_FOLDER = "history"
-SUB_FOLDER = "avito"
+SUB_FOLDER_AVITO = "avito"
 SUB_FOLDER_TG = "telegram"
 
 # Email message const

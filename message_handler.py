@@ -3,7 +3,11 @@ import openai
 import json
 import re
 from utils import send_contact
-from constants import OPENAI_API_KEY, CLOSING_MESSAGE, SYSTEM_PROMPT
+from constants import (
+    OPENAI_API_KEY, 
+    CLOSING_MESSAGE, 
+    SYSTEM_PROMPT,
+    BASE_FOLDER)
 import logging
 from typing import List, Dict
 
@@ -55,8 +59,8 @@ def generate_chatgpt_answer(user_id: str, prompt: str, engine: str) -> str:
 
     # try:
     # Make sure user have account, even if it not started bot.
-    folder_path = f"history/{engine}/{user_id}"
-    file_path = f"history/{engine}/{user_id}/history.json"
+    folder_path = f"{BASE_FOLDER}/{engine}/{user_id}"
+    file_path = f"{BASE_FOLDER}/{engine}/{user_id}/history.json"
 
     if not os.path.exists(folder_path):
         os.mkdir(folder_path)
