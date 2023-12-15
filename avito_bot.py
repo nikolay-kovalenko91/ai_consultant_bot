@@ -3,7 +3,7 @@ import time
 import os
 import argparse
 import logging
-from message_handler import generate_chatgpt_answer
+from message_handler import generate_chatgpt_answer, handle_nontext_message
 from constants import (
     CLIENT_ID,
     CLIENT_SECRET,
@@ -95,8 +95,41 @@ def send_message_back(reply_message: str, chat_id: str, retry=True) -> None:
         send_message_back(reply_message, chat_id, retry=False)
     else:
         logging.error(
-            "Send message back is failed. "
+            f"Send message back is failed. Status:{response.status_code}. "
             f"Error: {response.text}. Payload: {payload}"
+        )
+
+
+def read_message(chat_id: str, retry=True) -> None:
+    """
+    Function to make message to be read
+    """
+
+    # If access token is none get new one
+    if ACCESS_TOKEN is None:
+        get_access_token()
+
+    # Set up headers for API request
+    headers = {"Authorization": f"Bearer {ACCESS_TOKEN}"}
+
+    response = requests.post(
+        (
+            f"https://api.avito.ru/messenger/v1/accounts/{AVITO_USER_ID}/"
+            f"chats/{chat_id}/read"
+        ),
+        headers=headers,
+    )
+    if response.status_code == 200:
+        logging.debug(f"Message from chat_id = {chat_id} is read")
+    elif response.status_code == 403 and retry:
+        # Handle 403 error by calling  function and call api back
+        logging.debug("Need to get token")
+        get_access_token()
+        read_message(chat_id, retry=False)
+    else:
+        logging.error(
+            f"Read message is failed. Status:{response.status_code}. "
+            f"Error: {response.text}"
         )
 
 
@@ -112,7 +145,7 @@ def get_new_messages(retry=True):
     response = requests.get(
         (
             f"https://api.avito.ru/messenger/v2/accounts/{AVITO_USER_ID}/"
-            f"chats?unread_only=true"
+            f"chats"
         ),
         headers=headers,
     )
@@ -123,16 +156,30 @@ def get_new_messages(retry=True):
         for message in response.json()["chats"]:
             try:
                 chat_id = message["id"]
-                message_content = message["last_message"]["content"]["text"]
-                # Send message to user only in regular mode
-                result = generate_chatgpt_answer(
-                    user_id=chat_id,
-                    prompt=message_content,
-                    engine=SUB_FOLDER_AVITO,
-                )
-                if not args.dry:
-                    send_message_back(result, chat_id, retry=True)
-                logging.info(f"GPT answers: '{message_content}' -> '{result}'")
+                message_content = message["last_message"]
+                message_type = message_content["type"]
+
+                if message_type == "text" or message_type == "system":
+                    # Send message to user only in regular mode
+                    result = generate_chatgpt_answer(
+                        user_id=chat_id,
+                        prompt=message_content["content"]["text"],
+                        engine=SUB_FOLDER_AVITO,
+                    )
+                    if not args.dry:
+                        send_message_back(result, chat_id, retry=True)
+                    logging.info(
+                        f"GPT answers: '{message_content}' -> '{result}'"
+                    )
+                else:
+                    if not args.dry:
+                        handle_nontext_message(
+                            user_id=chat_id, engine=SUB_FOLDER_AVITO
+                        )
+                        read_message(chat_id, retry=True)
+                    logging.info(
+                        f"Got non-text message from chat ->'{chat_id}'"
+                    )
             except Exception:
                 logging.exception(
                     "Error occured in proccess: " f"message:{message}"

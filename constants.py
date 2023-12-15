@@ -33,3 +33,8 @@ CLOSING_MESSAGE_SUBJECT = "Номер кандидата"
 CLOSING_MESSAGE_BODY = "Контактный номер кандидата:"
 
 CLOSING_MESSAGE = "Спасибо, в рабочее время мы с вами свяжемся!"
+
+NON_TEXT_EMAIL_MESSAGE_SUBJECT = "Не текстовое сообщение"
+NON_TEXT_EMAIL_MESSAGE_BODY = (
+    "Пользователь прислал не текстовое сообщение в ответ на сообщение:"
+)

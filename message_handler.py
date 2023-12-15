@@ -2,12 +2,15 @@ import os
 import openai
 import json
 import re
-from utils import send_contact
+from utils import send_contact, send_email
 from constants import (
     OPENAI_API_KEY,
     CLOSING_MESSAGE,
     SYSTEM_PROMPT,
     BASE_FOLDER,
+    EMAIL_RECEIVER,
+    NON_TEXT_EMAIL_MESSAGE_BODY,
+    NON_TEXT_EMAIL_MESSAGE_SUBJECT,
 )
 import logging
 from typing import List, Dict
@@ -35,6 +38,40 @@ def check_contact_number(text: str) -> bool:
             return True
 
     return False
+
+
+def handle_nontext_message(user_id: str, engine: str) -> None:
+    """
+    Gets last message from chat history and sends to manager
+    """
+    # Make sure user have account, even if it not started bot.
+    folder_path = f"{BASE_FOLDER}/{engine}/{user_id}"
+    file_path = f"{BASE_FOLDER}/{engine}/{user_id}/history.json"
+
+    if not os.path.exists(folder_path):
+        os.mkdir(folder_path)
+
+    if not os.path.exists(file_path):
+        with open(file_path, "w") as file:
+            json.dump([], file)
+
+    # Read history and add user role to history
+    with open(file_path, "r") as file:
+        history = json.load(file)
+
+    if len(history) == 0:
+        history.append({"role": "system", "content": SYSTEM_PROMPT})
+
+    last_gpt_message = None
+    for message in reversed(history):
+        if message["role"] == "assistant":
+            last_gpt_message = message["content"]
+
+    send_email(
+        EMAIL_RECEIVER,
+        NON_TEXT_EMAIL_MESSAGE_SUBJECT,
+        f"{NON_TEXT_EMAIL_MESSAGE_BODY} {last_gpt_message}",
+    )
 
 
 def get_chat_completion(history: List[Dict[str, str]]) -> str:
