@@ -1,8 +1,13 @@
+import logging
+import time
+
 import openai
 import json
 import os
 
 openai.api_key = os.environ["OPENAI_API_KEY"]
+
+logger = logging.getLogger(__name__)
 
 
 def escape_markdown(string: str) -> str:
@@ -70,10 +75,21 @@ def generate_chatgpt_answer(user_id: int, prompt: str) -> str:
 
         history.append({"role": "user", "content": prompt})
 
-        completion = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=history,
-        )
+        try:
+            completion = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=history,
+            )
+        except openai.error.RateLimitError:
+            time.sleep(30)
+            completion = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=history,
+            )
+        except openai.error.InvalidRequestError as e:
+            logger.error(f"ChatGPT Invalid request error: {e}")
+            return "Мы ответим вам как можно скорее"
+
         print(
             f'{completion["usage"]["prompt_tokens"]} prompt tokens counted by'
             " the OpenAI API."

@@ -4,10 +4,10 @@ import json
 import os
 
 import telebot
+from dotenv import load_dotenv
 
 import utils
 from utils import generate_chatgpt_answer
-
 
 Bot = telebot.TeleBot(os.environ["BOT_TOKEN"])
 print(f"The Bot is online (id: {Bot.get_me().id})...")
@@ -131,6 +131,8 @@ def handle_messages(message: callable) -> None:
 
 # Connect to bot
 if __name__ == "__main__":
+    # This line brings all environment variables from .env into os.environ
+    load_dotenv()
     try:
         Bot.infinity_polling(timeout=10, long_polling_timeout=5)
     except Exception:
