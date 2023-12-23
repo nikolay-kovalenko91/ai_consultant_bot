@@ -15,6 +15,7 @@ TELEGRAM_BOT_TOKEN = os.environ["BOT_TOKEN"]
 # OpenAI
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 SYSTEM_PROMPT = os.environ["SYSTEM_PROMPT"]
+GPT_ERROR_CASE_MESSAGE = "Мы ответим вам как можно скорее"
 
 # Email credentials
 SMTP_SERVER = os.environ.get("SMTP_SERVER", "smtp.gmail.com")

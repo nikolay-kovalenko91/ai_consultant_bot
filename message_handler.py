@@ -11,6 +11,7 @@ from constants import (
     EMAIL_RECEIVER,
     NON_TEXT_EMAIL_MESSAGE_BODY,
     NON_TEXT_EMAIL_MESSAGE_SUBJECT,
+    GPT_ERROR_CASE_MESSAGE,
 )
 import logging
 from typing import List, Dict
@@ -109,7 +110,7 @@ def get_chat_completion(history: List[Dict[str, str]]) -> str:
         )
     except openai.error.InvalidRequestError as e:
         logging.error(f"ChatGPT Invalid request error: {e}")
-        return "Мы ответим вам как можно скорее"
+        return GPT_ERROR_CASE_MESSAGE
     logging.debug(
         f'{completion["usage"]["prompt_tokens"]} prompt tokens counted by'
         " the OpenAI API."
