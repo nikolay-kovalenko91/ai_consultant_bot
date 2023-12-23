@@ -40,13 +40,12 @@ def check_contact_number(text: str) -> bool:
     return False
 
 
-def handle_nontext_message(user_id: str, engine: str) -> None:
+def get_or_create_history(user_id: str, engine: str):
     """
-    Gets last message from chat history and sends to manager
+    Get existing chat history or create a new one if not exists
     """
-    # Make sure user have account, even if it not started bot.
     folder_path = f"{BASE_FOLDER}/{engine}/{user_id}"
-    file_path = f"{BASE_FOLDER}/{engine}/{user_id}/history.json"
+    file_path = f"{folder_path}/history.json"
 
     if not os.path.exists(folder_path):
         os.mkdir(folder_path)
@@ -55,12 +54,21 @@ def handle_nontext_message(user_id: str, engine: str) -> None:
         with open(file_path, "w") as file:
             json.dump([], file)
 
-    # Read history and add user role to history
     with open(file_path, "r") as file:
         history = json.load(file)
 
     if len(history) == 0:
         history.append({"role": "system", "content": SYSTEM_PROMPT})
+
+    return file_path, history
+
+
+def handle_nontext_message(user_id: str, engine: str) -> None:
+    """
+    Gets last message from chat history and sends to manager
+    """
+    # Make sure user have account, even if it not started bot.
+    file_path, history = get_or_create_history(user_id, engine)
 
     last_gpt_message = None
     for message in reversed(history):
@@ -97,22 +105,7 @@ def generate_chatgpt_answer(user_id: str, prompt: str, engine: str) -> str:
 
     # try:
     # Make sure user have account, even if it not started bot.
-    folder_path = f"{BASE_FOLDER}/{engine}/{user_id}"
-    file_path = f"{BASE_FOLDER}/{engine}/{user_id}/history.json"
-
-    if not os.path.exists(folder_path):
-        os.mkdir(folder_path)
-
-    if not os.path.exists(file_path):
-        with open(file_path, "w") as file:
-            json.dump([], file)
-
-    # Read history and add user role to history
-    with open(file_path, "r") as file:
-        history = json.load(file)
-
-    if len(history) == 0:
-        history.append({"role": "system", "content": SYSTEM_PROMPT})
+    file_path, history = get_or_create_history(user_id, engine)
 
     history.append({"role": "user", "content": prompt})
 
