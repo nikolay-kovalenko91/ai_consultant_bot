@@ -57,15 +57,9 @@ python telegram_bot.py
 To launch the Avito bot, use:
 
 ```bash
-<<<<<<< HEAD
-<<<<<<< HEAD
+
 python avito_bot.py
-=======
-python python avito_bot.py
->>>>>>> 134ef84 (refactor: Separate history folders for Avito and Telegram, add param to generate_gpt_message)
-=======
-python avito_bot.py
->>>>>>> 679990e (readme file has been updated)
+
 ```
 
 To see logs without sending actual API calls, run the Avito bot in dry mode:
