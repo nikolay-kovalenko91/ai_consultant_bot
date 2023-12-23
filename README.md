@@ -1,16 +1,19 @@
-<h2>Chat GPT Telegram Bot </h2>
-This bot response to every message with ChatGpt prompt (excluding commands)
+
+<h2>ChatGPT Bot for Telegram and Avito  </h2>
+
+This repository implements two bots for Telegram and Avito using ChatGPT. Users can run the `telegram_bot.py` for Telegram and `avito_bot.py` for Avito. The Telegram bot supports commands such as viewing chat history and resetting it.
+
 
 <br>
 
-# ▋Commands
+# ▋Telegram Bot Commands
 + **/history** to get history file in json format
 + **/reset** to reset the chat history
 
 <br>
 
 # ▋Install Requirements
-Then you have to install requirements before running bot
+Before running the bots, install the required packages. Navigate to the bot directory, create a virtual environment if needed, and install dependencies:
 1. Navigate to bot directory
 2. Create virtual environment if needed
 3. Install requirements using pip
@@ -25,12 +28,48 @@ pip install -r requirements.txt
 BOT_TOKEN: Telegram API key
 OPENAI_API_KEY: ChatGPT API key
 SYSTEM_PROMPT: ChatGPT system prompt
-```
 
+AVITO_USER_ID: Avito user ID
+AVITO_CLIENT_ID: Avito client ID
+AVITO_CLIENT_SECRET: Avito client secret code
+
+SMTP_SERVER: SMTP server address
+SMTP_SERVER_PORT: SMTP server port
+SENDER_EMAIL_ADDRESS: Sending account address
+SENDER_EMAIL_PASS: Sending account password
+
+RECEIVER_EMAIL_ADDRESS: Email address of reciever 
+```
 <br>
 
-# ▋Launch the bot
-Now you are ready to launch your bot in polling mode inside your terminal using python
+# ▋Running the Bots
+
+## Telegram Bot
+
+To launch the Telegram bot, use:
+
 ```bash
-python main.py
+python telegram_bot.py
+```
+
+## Avito Bot
+
+To launch the Avito bot, use:
+
+```bash
+<<<<<<< HEAD
+<<<<<<< HEAD
+python avito_bot.py
+=======
+python python avito_bot.py
+>>>>>>> 134ef84 (refactor: Separate history folders for Avito and Telegram, add param to generate_gpt_message)
+=======
+python avito_bot.py
+>>>>>>> 679990e (readme file has been updated)
+```
+
+To see logs without sending actual API calls, run the Avito bot in dry mode:
+
+```bash
+python avito_bot.py --dry
 ```
