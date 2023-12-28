@@ -145,7 +145,7 @@ def get_new_messages(retry=True):
     response = requests.get(
         (
             f"https://api.avito.ru/messenger/v2/accounts/{AVITO_USER_ID}/"
-            f"chats"
+            f"chats?unread_only=true"
         ),
         headers=headers,
     )

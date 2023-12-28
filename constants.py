@@ -1,10 +1,13 @@
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Config
 POLLING_INTERVAL = int(os.environ.get("POLLING_INTERVAL", 10))
 
 # Avito
-
 AVITO_USER_ID = os.environ["AVITO_USER_ID"]
 CLIENT_ID = os.environ["AVITO_CLIENT_ID"]
 CLIENT_SECRET = os.environ["AVITO_CLIENT_SECRET"]
