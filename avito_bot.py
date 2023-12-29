@@ -11,7 +11,7 @@ from constants import (
     BASE_FOLDER,
     SUB_FOLDER_AVITO,
     POLLING_INTERVAL,
-    BREAK_TIME
+    BREAK_TIME,
 )
 
 # Configure logging
