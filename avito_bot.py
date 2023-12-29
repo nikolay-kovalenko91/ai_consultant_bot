@@ -11,6 +11,7 @@ from constants import (
     BASE_FOLDER,
     SUB_FOLDER_AVITO,
     POLLING_INTERVAL,
+    BREAK_TIME
 )
 
 # Configure logging
@@ -168,6 +169,7 @@ def get_new_messages(retry=True):
                     )
                     if not args.dry:
                         send_message_back(result, chat_id, retry=True)
+                        time.sleep(BREAK_TIME)
                     logging.info(
                         f"GPT answers: '{message_content}' -> '{result}'"
                     )

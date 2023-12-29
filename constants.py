@@ -6,6 +6,7 @@ load_dotenv()
 
 # Config
 POLLING_INTERVAL = int(os.environ.get("POLLING_INTERVAL", 10))
+BREAK_TIME = int(os.environ.get("BREAK_TIME", 3))
 
 # Avito
 AVITO_USER_ID = os.environ["AVITO_USER_ID"]
