@@ -1,111 +1,41 @@
-import logging
-import time
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from constants import (
+    SMTP_EMAIL,
+    SMTP_SERVER,
+    SMTP_PORT,
+    SMTP_PASSWORD,
+    EMAIL_RECEIVER,
+    CLOSING_MESSAGE_SUBJECT,
+    CLOSING_MESSAGE_BODY,
+)
 
-import openai
-import json
-import os
 
-openai.api_key = os.environ["OPENAI_API_KEY"]
-
-logger = logging.getLogger(__name__)
-
-
-def escape_markdown(string: str) -> str:
+def send_email(to_address: str, subject: str, body: str) -> None:
     """
-    Function to escape markdown syntax
+    Function to send email message
     """
 
-    return (
-        string.replace("_", "\_")
-        .replace("*", "\*")
-        .replace("[", "\[")
-        .replace("]", "\]")
-        .replace("(", "\(")
-        .replace(")", "\)")
-        .replace("~", "\~")
-        .replace(">", "\>")
-        .replace("#", "\#")
-        .replace("+", "\+")
-        .replace("-", "\-")
-        .replace("=", "\=")
-        .replace("|", "\|")
-        .replace("{", "\{")
-        .replace("}", "\}")
-        .replace(".", "\.")
-        .replace("!", "\!")
-        .replace(",", "\,")
+    msg = MIMEMultipart()
+    msg["From"] = SMTP_EMAIL
+    msg["To"] = to_address
+    msg["Subject"] = subject
+    msg.attach(MIMEText(body, "plain"))
+
+    # Connect to SMTP and send email
+    with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+        server.starttls()
+        server.login(SMTP_EMAIL, SMTP_PASSWORD)
+        server.sendmail(SMTP_EMAIL, to_address, msg.as_string())
+
+
+def send_contact(phone: str) -> None:
+    """
+    Function to send contact number
+    """
+    send_email(
+        EMAIL_RECEIVER,
+        CLOSING_MESSAGE_SUBJECT,
+        f"{CLOSING_MESSAGE_BODY} {phone}",
     )
-
-
-def force_private(message: callable) -> bool:
-    """
-    Function to force chat into private chat
-    """
-    if message.chat.type == "private":
-        return True
-
-    return False
-
-
-def generate_chatgpt_answer(user_id: int, prompt: str) -> str:
-    """
-    Chat GPT function
-    """
-
-    try:
-        # Make sure user have account, even if it not started bot.
-        folder_path = f"Accounts/{user_id}"
-        file_path = f"Accounts/{user_id}/history.json"
-
-        if not os.path.exists(folder_path):
-            os.mkdir(folder_path)
-
-        if not os.path.exists(file_path):
-            with open(file_path, "w") as file:
-                json.dump([], file)
-
-        # Read history and add user role to history
-        with open(file_path, "r") as file:
-            history = json.load(file)
-
-        if len(history) == 0:
-            history.append(
-                {"role": "system", "content": os.environ["SYSTEM_PROMPT"]}
-            )
-
-        history.append({"role": "user", "content": prompt})
-
-        try:
-            completion = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=history,
-            )
-        except openai.error.RateLimitError:
-            time.sleep(30)
-            completion = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=history,
-            )
-        except openai.error.InvalidRequestError as e:
-            logger.error(f"ChatGPT Invalid request error: {e}")
-            return "Мы ответим вам как можно скорее"
-
-        print(
-            f'{completion["usage"]["prompt_tokens"]} prompt tokens counted by'
-            " the OpenAI API."
-        )
-
-        gpt_result = completion.choices[0].message.content
-        # Add GPT prompt to history
-        history.append({"role": "assistant", "content": gpt_result})
-
-        # Save new history
-        with open(file_path, "w") as file:
-            json.dump(history, file, indent=2, ensure_ascii=False)
-
-        # Return chat answer
-        return gpt_result
-
-    # Handle errors
-    except Exception as ex:
-        return f"Error due to {ex}"
