@@ -4,19 +4,20 @@ import os
 import telebot
 import logging
 
-from dotenv import load_dotenv
 from message_handler import generate_chatgpt_answer
 from constants import (
     TELEGRAM_BOT_TOKEN,
     POLLING_INTERVAL,
     BASE_FOLDER,
     SUB_FOLDER_TG,
+    LOGGING_LEVEL,
 )
 
-Bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
-logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
+logging.basicConfig(format="%(asctime)s - %(message)s")
+logger = logging.getLogger(__name__)
+logger.setLevel(level=LOGGING_LEVEL)
 
-logging.debug(f"The Bot is online (id: {Bot.get_me().id})...")
+Bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
 
 def escape_markdown(string: str) -> str:
@@ -145,7 +146,7 @@ def handle_messages(message: callable) -> None:
 
             # Fetch results from function
             result = generate_chatgpt_answer(
-                user_id=user_id, prompt=user_prompt, engine=SUB_FOLDER_TG
+                user_id=user_id, message=user_prompt, engine=SUB_FOLDER_TG
             )
 
             # Edit waiting message and answer user message
@@ -156,7 +157,7 @@ def handle_messages(message: callable) -> None:
                 parse_mode="MarkdownV2",
             )
         except Exception:
-            logging.exception("Error sending tg message")
+            logger.exception("Error sending tg message")
 
     # Handle private chat
     elif force_private(message):
@@ -171,7 +172,7 @@ def handle_messages(message: callable) -> None:
 
             # Fetch results from function
             result = generate_chatgpt_answer(
-                user_id=user_id, prompt=user_prompt, engine=SUB_FOLDER_TG
+                user_id=user_id, message=user_prompt, engine=SUB_FOLDER_TG
             )
             result = "[Empty Result]" if not result else result
 
@@ -183,13 +184,12 @@ def handle_messages(message: callable) -> None:
                 parse_mode="MarkdownV2",
             )
         except Exception:
-            logging.exception("Error sending tg message")
+            logger.exception("Error sending tg message")
 
 
 # Connect to bot
 if __name__ == "__main__":
     path = os.path.join(BASE_FOLDER, SUB_FOLDER_TG)
-    load_dotenv()
     # Check if the base folder exists
     if not os.path.exists(BASE_FOLDER):
         os.makedirs(BASE_FOLDER)
@@ -201,4 +201,4 @@ if __name__ == "__main__":
     try:
         Bot.polling(interval=POLLING_INTERVAL)
     except Exception:
-        logging.exception("Error sending tg message")
+        logger.exception("Error sending tg message")

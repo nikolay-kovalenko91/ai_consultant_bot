@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Config
+LOGGING_LEVEL = os.getenv('LOGGING_LEVEL', 'INFO').upper()
 POLLING_INTERVAL = int(os.environ.get("POLLING_INTERVAL", 10))
 BREAK_TIME = int(os.environ.get("BREAK_TIME", 3))
 

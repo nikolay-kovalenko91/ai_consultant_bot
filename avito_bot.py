@@ -1,9 +1,13 @@
-import requests
-import time
-import os
 import argparse
 import logging
-from message_handler import generate_chatgpt_answer, handle_nontext_message
+
+import os
+import random
+import time
+from typing import Iterable, Type
+
+import requests
+
 from constants import (
     CLIENT_ID,
     CLIENT_SECRET,
@@ -12,11 +16,43 @@ from constants import (
     SUB_FOLDER_AVITO,
     POLLING_INTERVAL,
     BREAK_TIME,
+    LOGGING_LEVEL,
 )
+from message_handler import generate_chatgpt_answer, handle_nontext_message
 
-# Configure logging
-logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
+
 ACCESS_TOKEN = None
+
+logging.basicConfig(format="%(asctime)s - %(message)s")
+logger = logging.getLogger(__name__)
+logger.setLevel(level=LOGGING_LEVEL)
+
+
+def backoff_decorator(
+    exceptions: Iterable[Type[Exception]] = (Exception,),
+    max_retries: int = 4,
+    backoff_seconds: float = 1.0,
+):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            retries = 0
+            while retries < max_retries:
+                try:
+                    return func(*args, **kwargs)
+                except exceptions as e:
+                    logger.warning(f"Request failed; {e=}. Retrying...")
+                    retries += 1
+                    sleep = backoff_seconds * 2**retries + random.uniform(
+                        0, 1
+                    )
+                    time.sleep(sleep)
+            raise ConnectionError(
+                f"{max_retries=} reached. Unable to make the request"
+            )
+
+        return wrapper
+
+    return decorator
 
 
 def parse_args():
@@ -53,7 +89,7 @@ def get_access_token() -> None:
         # Save the token to token.json in the desired format
         ACCESS_TOKEN = response.json().get("access_token")
     else:
-        logging.error(f"Token error : {response.status_code}, {response.text}")
+        logger.error(f"Token error : {response.status_code}, {response.text}")
 
 
 def send_message_back(reply_message: str, chat_id: str, retry=True) -> None:
@@ -86,16 +122,14 @@ def send_message_back(reply_message: str, chat_id: str, retry=True) -> None:
 
     # Check the response status
     if response.status_code == 200:
-        logging.debug(
-            f"Message from chat_id = {chat_id} successfully answered "
-        )
+        logger.debug(f"Message from {chat_id=} successfully answered")
     elif response.status_code == 403 and retry:
         # Handle 403 error by calling  function and call api back
-        logging.debug("Need to get token")
+        logger.debug("Need to get auth token")
         get_access_token()
         send_message_back(reply_message, chat_id, retry=False)
     else:
-        logging.error(
+        logger.error(
             f"Send message back is failed. Status:{response.status_code}. "
             f"Error: {response.text}. Payload: {payload}"
         )
@@ -121,14 +155,14 @@ def read_message(chat_id: str, retry=True) -> None:
         headers=headers,
     )
     if response.status_code == 200:
-        logging.debug(f"Message from chat_id = {chat_id} is read")
+        logger.debug(f"Message from {chat_id=} has been read")
     elif response.status_code == 403 and retry:
         # Handle 403 error by calling  function and call api back
-        logging.debug("Need to get token")
+        logger.debug("Need to get auth token")
         get_access_token()
         read_message(chat_id, retry=False)
     else:
-        logging.error(
+        logger.error(
             f"Read message is failed. Status:{response.status_code}. "
             f"Error: {response.text}"
         )
@@ -154,7 +188,9 @@ def get_new_messages(retry=True):
     # Check the response status
     if response.status_code == 200:
         # Iterate through each message in the response
-        for message in response.json()["chats"]:
+        messages = response.json()["chats"]
+        logger.info(f"Fetched {len(messages)} messages from Avito...")
+        for message in messages:
             try:
                 chat_id = message["id"]
                 message_content = message["last_message"]
@@ -164,14 +200,15 @@ def get_new_messages(retry=True):
                     # Send message to user only in regular mode
                     result = generate_chatgpt_answer(
                         user_id=chat_id,
-                        prompt=message_content["content"]["text"],
+                        message=message_content["content"]["text"],
                         engine=SUB_FOLDER_AVITO,
                     )
                     if not args.dry:
                         send_message_back(result, chat_id, retry=True)
                         time.sleep(BREAK_TIME)
-                    logging.info(
-                        f"GPT answers: '{message_content}' -> '{result}'"
+                    logger.debug(
+                        f"Got message={message_content['content']}'; "
+                        f"GPT answer={result}"
                     )
                 else:
                     if not args.dry:
@@ -179,32 +216,31 @@ def get_new_messages(retry=True):
                             user_id=chat_id, engine=SUB_FOLDER_AVITO
                         )
                         read_message(chat_id, retry=True)
-                    logging.info(
+                    logger.warning(
                         f"Got non-text message from chat ->'{chat_id}'"
                     )
             except Exception:
-                logging.exception(
+                logger.exception(
                     "Error occured in proccess: " f"message:{message}"
                 )
 
     # If token gets expired (403 Forbidden)
     elif response.status_code == 403 and retry:
         # Handle 403 error by calling  function and call api back
-        logging.debug("Need to get token")
+        logger.debug("Need to get auth token")
         get_access_token()
         get_new_messages(retry=False)
 
     else:
         # Log errors for other status codes
-        logging.error(
-            "API call failed with status code"
+        logger.error(
+            "Get new messages call failed with status code"
             f" {response.status_code}. Error message: {response.text}"
         )
 
 
 if __name__ == "__main__":
     path = os.path.join(BASE_FOLDER, SUB_FOLDER_AVITO)
-
     # Check if the base folder exists
     if not os.path.exists(BASE_FOLDER):
         os.makedirs(BASE_FOLDER)
@@ -213,11 +249,10 @@ if __name__ == "__main__":
     if not os.path.exists(path):
         os.makedirs(path)
 
+    logger.debug("Starting bot...")
     args = parse_args()
-
     if args.dry:
-        logging.info("Running in dry mode. Performing dry run actions...")
+        logger.info("Running in dry mode. Performing dry run actions...")
     while True:
         get_new_messages(retry=True)
-        logging.debug("API has been called")
         time.sleep(POLLING_INTERVAL)

@@ -88,29 +88,22 @@ def get_chat_completion(history: List[Dict[str, str]]) -> str:
     """
     Generates a chat completion using the OpenAI API
     """
-    # completion = openai.ChatCompletion.create(
-    #     model="gpt-3.5-turbo",
-    #     messages=history,
-    # )
-    # logging.debug(
-    #     f'{completion["usage"]["prompt_tokens"]} prompt tokens counted by'
-    #     " the OpenAI API."
-    # )
-
     try:
         completion = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
+            model="gpt-3.5-turbo-16k",
             messages=history,
         )
     except openai.error.RateLimitError:
-        time.sleep(30)
+        logging.warning("Got ChatGPT RateLimitError. Retrying...")
+        time.sleep(61)
         completion = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
+            model="gpt-3.5-turbo-16k",
             messages=history,
         )
     except openai.error.InvalidRequestError as e:
         logging.error(f"ChatGPT Invalid request error: {e}")
         return GPT_ERROR_CASE_MESSAGE
+
     logging.debug(
         f'{completion["usage"]["prompt_tokens"]} prompt tokens counted by'
         " the OpenAI API."
@@ -119,7 +112,7 @@ def get_chat_completion(history: List[Dict[str, str]]) -> str:
     return completion.choices[0].message.content
 
 
-def generate_chatgpt_answer(user_id: str, prompt: str, engine: str) -> str:
+def generate_chatgpt_answer(user_id: str, message: str, engine: str) -> str:
     """
     Chat GPT function
     """
@@ -128,10 +121,10 @@ def generate_chatgpt_answer(user_id: str, prompt: str, engine: str) -> str:
     # Make sure user have account, even if it not started bot.
     file_path, history = get_or_create_history(user_id, engine)
 
-    history.append({"role": "user", "content": prompt})
+    history.append({"role": "user", "content": message})
 
     # Check if text is valid phone number or not
-    if check_contact_number(prompt):
+    if check_contact_number(message):
         history.append({"role": "assistant", "content": CLOSING_MESSAGE})
         with open(file_path, "w") as file:
             json.dump(history, file, indent=2, ensure_ascii=False)
