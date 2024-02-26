@@ -43,3 +43,6 @@ dmypy.json
 .idea/
 
 docker-compose.override.yml
+
+# database
+database.db

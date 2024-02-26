@@ -3,3 +3,4 @@ requests
 openai==0.28
 python-dotenv
 secure-smtplib
+SQLAlchemy
