@@ -16,3 +16,11 @@ services:
     volumes:
       - ./database.db:/src/database.db
     command: ["python", "avito_bot.py"]
+
+  nocodb:
+    image: nocodb/nocodb:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./database.db:/database.db
+
