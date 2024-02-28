@@ -1,6 +1,9 @@
+import csv
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from io import StringIO
+
 from constants import (
     SMTP_EMAIL,
     SMTP_SERVER,
@@ -10,6 +13,7 @@ from constants import (
     CLOSING_MESSAGE_SUBJECT,
     CLOSING_MESSAGE_BODY,
 )
+from repository import get_account_prompt, get_accounts_faqs
 
 
 def send_email(to_address: str, subject: str, body: str) -> None:
@@ -39,3 +43,19 @@ def send_contact(phone: str) -> None:
         CLOSING_MESSAGE_SUBJECT,
         f"{CLOSING_MESSAGE_BODY} {phone}",
     )
+
+
+def to_csv_string(sql_rows: list[tuple]) -> str:
+    csv_result = StringIO()
+    wr = csv.writer(csv_result)
+    for sql_row in sql_rows:
+        wr.writerow(sql_row)
+
+    return csv_result.getvalue()
+
+
+def generate_gpt_prompt(user_id: str) -> str:
+    account_prompt = get_account_prompt(user_id)
+    accounts_faqs = to_csv_string(get_accounts_faqs(user_id))
+
+    return f'{account_prompt}\n{accounts_faqs}'
