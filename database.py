@@ -19,12 +19,6 @@ class Accounts(Base):
     prompt: Mapped[str]
 
 
-class Vacancies(Base):
-    __tablename__ = 'vacancies'
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-
-
 class Faq(Base):
     __tablename__ = 'faq'
 
