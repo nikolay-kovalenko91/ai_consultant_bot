@@ -190,6 +190,7 @@ def get_new_messages(account, retry=True):
                         user_id=chat_id,
                         message=message_content["content"]["text"],
                         engine=SUB_FOLDER_AVITO,
+                        for_avito=True,
                     )
                     if not args.dry:
                         send_message_back(account, result, chat_id, retry=True)
@@ -201,7 +202,9 @@ def get_new_messages(account, retry=True):
                 else:
                     if not args.dry:
                         handle_nontext_message(
-                            user_id=chat_id, engine=SUB_FOLDER_AVITO
+                            user_id=chat_id,
+                            engine=SUB_FOLDER_AVITO,
+                            for_avito=True,
                         )
                         read_message(account, chat_id, retry=True)
                     logger.warning(
