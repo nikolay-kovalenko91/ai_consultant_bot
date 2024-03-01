@@ -13,7 +13,7 @@ from constants import (
     CLOSING_MESSAGE_SUBJECT,
     CLOSING_MESSAGE_BODY,
 )
-from repository import get_account_prompt, get_accounts_faqs
+from repository import get_avito_account_prompt, get_avito_accounts_faqs
 
 
 def send_email(to_address: str, subject: str, body: str) -> None:
@@ -55,7 +55,7 @@ def to_csv_string(sql_rows: list[tuple]) -> str:
 
 
 def generate_gpt_prompt(user_id: str) -> str:
-    account_prompt = get_account_prompt(user_id)
-    accounts_faqs = to_csv_string(get_accounts_faqs(user_id))
+    account_prompt = get_avito_account_prompt(user_id)
+    accounts_faqs = to_csv_string(get_avito_accounts_faqs(user_id))
 
     return f'{account_prompt}\n{accounts_faqs}'

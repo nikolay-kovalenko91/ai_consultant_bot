@@ -9,8 +9,8 @@ session_maker = sessionmaker(
 Base = declarative_base()
 
 
-class Accounts(Base):
-    __tablename__ = 'accounts'
+class AvitoAccounts(Base):
+    __tablename__ = 'avito_accounts'
 
     user_id: Mapped[str] = mapped_column(primary_key=True)
     client_id: Mapped[str]
@@ -25,11 +25,11 @@ class Faq(Base):
     __tablename__ = 'faq'
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    account_id: Mapped[str] = mapped_column(ForeignKey('accounts.user_id'))
+    account_id: Mapped[str] = mapped_column(ForeignKey('avito_accounts.user_id'))
     question: Mapped[str]
     answer: Mapped[str]
 
-    account: Mapped['Accounts'] = relationship(back_populates='faqs')
+    account: Mapped['AvitoAccounts'] = relationship(back_populates='faqs')
 
 
 Base.metadata.create_all(engine)

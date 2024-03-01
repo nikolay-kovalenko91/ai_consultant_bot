@@ -16,7 +16,7 @@ from constants import (
     LOGGING_LEVEL,
 )
 from message_handler import generate_chatgpt_answer, handle_nontext_message
-from repository import get_active_accounts
+from repository import get_active_avito_accounts
 
 access_tokens: dict[str, str] = dict()
 
@@ -246,7 +246,7 @@ if __name__ == "__main__":
         logger.info("Running in dry mode. Performing dry run actions...")
 
     while True:
-        for account in get_active_accounts():
+        for account in get_active_avito_accounts():
             get_new_messages(account, retry=True)
 
         time.sleep(POLLING_INTERVAL)
