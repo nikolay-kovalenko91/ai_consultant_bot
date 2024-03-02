@@ -1,10 +1,13 @@
 from sqlalchemy import create_engine, ForeignKey
-from sqlalchemy.orm import Mapped, sessionmaker, declarative_base, mapped_column, relationship
+from sqlalchemy.orm import Mapped, sessionmaker, declarative_base, mapped_column, relationship, scoped_session
 
 engine = create_engine('sqlite:///database.db')
+
 session_maker = sessionmaker(
     engine, expire_on_commit=False,
 )
+
+current_session = scoped_session(session_maker)
 
 Base = declarative_base()
 
