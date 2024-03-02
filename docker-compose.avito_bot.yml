@@ -1,13 +1,4 @@
 services:
-  telegram_bot:
-    env_file:
-      - .env
-    build:
-      dockerfile: Dockerfile
-    volumes:
-      - ./database.db:/src/database.db
-    command: ["python", "telegram_bot.py"]
-
   avito_bot:
     env_file:
       - .env

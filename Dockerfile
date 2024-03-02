@@ -1,4 +1,4 @@
-FROM python:latest-alpine
+FROM python:3.11-alpine
 
 COPY requirements.txt /tmp/requirements.txt
 
