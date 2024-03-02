@@ -13,7 +13,8 @@ from constants import (
     CLOSING_MESSAGE_SUBJECT,
     CLOSING_MESSAGE_BODY,
 )
-from repository import get_avito_account_prompt, get_avito_accounts_faqs
+from database import AvitoAccounts
+from repository import get_avito_accounts_faqs
 
 
 def send_email(to_address: str, subject: str, body: str) -> None:
@@ -54,8 +55,11 @@ def to_csv_string(sql_rows: list[tuple]) -> str:
     return csv_result.getvalue()
 
 
-def generate_gpt_prompt(user_id: str) -> str:
-    account_prompt = get_avito_account_prompt(user_id)
-    accounts_faqs = to_csv_string(get_avito_accounts_faqs(user_id))
+def generate_gpt_prompt(account: AvitoAccounts) -> str:
+    accounts_faqs = to_csv_string(get_avito_accounts_faqs(account.user_id))
 
-    return f'{account_prompt}\n{accounts_faqs}'
+    return (
+        f'{account.prompt}\n'
+        f'Проанализируйте таблицу с ответами на частые вопросы:\n'
+        f'{accounts_faqs}'
+    )

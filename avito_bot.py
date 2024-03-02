@@ -15,8 +15,10 @@ from constants import (
     BREAK_TIME,
     LOGGING_LEVEL,
 )
+from database import AvitoAccounts
 from message_handler import generate_chatgpt_answer, handle_nontext_message
 from repository import get_active_avito_accounts
+from utils import generate_gpt_prompt
 
 access_tokens: dict[str, str] = dict()
 
@@ -61,7 +63,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def get_access_token(account) -> None:
+def get_access_token(account: AvitoAccounts) -> None:
     """
     Function to get new access token
     """
@@ -89,7 +91,10 @@ def get_access_token(account) -> None:
         logger.error(f"Token error : {response.status_code}, {response.text}")
 
 
-def send_message_back(account, reply_message: str, chat_id: str, retry=True) -> None:
+def send_message_back(
+        account: AvitoAccounts, reply_message: str,
+        chat_id: str, retry=True,
+) -> None:
     """
     Function to send message back to user
     """
@@ -128,7 +133,7 @@ def send_message_back(account, reply_message: str, chat_id: str, retry=True) -> 
         )
 
 
-def read_message(account, chat_id: str, retry=True) -> None:
+def read_message(account: AvitoAccounts, chat_id: str, retry=True) -> None:
     """
     Function to make message to be read
     """
@@ -156,7 +161,7 @@ def read_message(account, chat_id: str, retry=True) -> None:
         )
 
 
-def get_new_messages(account, retry=True):
+def get_new_messages(account: AvitoAccounts, retry=True) -> None:
     """
     Function to get new messages from Avito
     """
@@ -190,7 +195,7 @@ def get_new_messages(account, retry=True):
                         user_id=chat_id,
                         message=message_content["content"]["text"],
                         engine=SUB_FOLDER_AVITO,
-                        for_avito=True,
+                        system_prompt=generate_gpt_prompt(account),
                     )
                     if not args.dry:
                         send_message_back(account, result, chat_id, retry=True)
@@ -204,7 +209,7 @@ def get_new_messages(account, retry=True):
                         handle_nontext_message(
                             user_id=chat_id,
                             engine=SUB_FOLDER_AVITO,
-                            for_avito=True,
+                            system_prompt=generate_gpt_prompt(account),
                         )
                         read_message(account, chat_id, retry=True)
                     logger.warning(
