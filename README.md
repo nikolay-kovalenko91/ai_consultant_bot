@@ -67,3 +67,25 @@ To see logs without sending actual API calls, run the Avito bot in dry mode:
 ```bash
 python avito_bot.py --dry
 ```
+
+# ▋Running the Bots with docker 
+
+## Telegram Bot
+
+To launch the Telegram bot with docker, use:
+
+```bash
+docker compose -f docker-compose.telegram_bot.yml up
+```
+
+## Avito Bot
+
+To launch the Avito bot with docker, use:
+
+```bash
+docker compose -f docker-compose.avito_bot.yml up
+```
+
+Nocodb will be available on localhost:8080. 
+In it you need to add a new Data Source with 
+the 'SQLite' Database Type and '/database.db' SQLite File.
