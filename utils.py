@@ -3,6 +3,9 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from io import StringIO
+from typing import Sequence
+
+from sqlalchemy import Row
 
 from constants import (
     SMTP_EMAIL,
@@ -46,7 +49,7 @@ def send_contact(phone: str) -> None:
     )
 
 
-def to_csv_string(sql_rows: list[tuple]) -> str:
+def to_csv_string(sql_rows: Sequence[Row]) -> str:
     csv_result = StringIO()
     wr = csv.writer(csv_result)
     for sql_row in sql_rows:
@@ -55,8 +58,8 @@ def to_csv_string(sql_rows: list[tuple]) -> str:
     return csv_result.getvalue()
 
 
-def generate_gpt_prompt(account: AvitoAccounts) -> str:
-    accounts_faqs = to_csv_string(get_avito_accounts_faqs(account.user_id))
+def generate_gpt_prompt(session, account: AvitoAccounts) -> str:
+    accounts_faqs = to_csv_string(get_avito_accounts_faqs(session, account.user_id))
 
     return (
         f'{account.prompt}\n'

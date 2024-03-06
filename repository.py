@@ -1,17 +1,21 @@
-from sqlalchemy import select
+from typing import Sequence
 
-from database import AvitoAccounts, Faq, current_session
+from sqlalchemy import select, Row
+from sqlalchemy.orm import Session
+
+from database import AvitoAccounts, Faq
 
 
-def get_active_avito_accounts() -> list[AvitoAccounts]:
+def get_active_avito_accounts(session: Session) -> Sequence[AvitoAccounts]:
     statement = select(AvitoAccounts).filter_by(is_active=True)
-    active_accounts = current_session.scalars(statement).all()
 
-    return active_accounts
+    return session.scalars(statement).all()
 
 
-def get_avito_accounts_faqs(user_id: int) -> list[tuple[str, str]]:
+def get_avito_accounts_faqs(
+        session: Session, user_id: int,
+) -> Sequence[Row[tuple[str, str]]]:
     statement = select(Faq.question, Faq.answer).filter_by(account_id=user_id)
-    faqs = current_session.execute(statement).all()
 
-    return faqs
+    return session.execute(statement).all()
+

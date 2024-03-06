@@ -7,6 +7,7 @@ import time
 from typing import Iterable, Type
 
 import requests
+from sqlalchemy.orm import Session
 
 from constants import (
     BASE_FOLDER,
@@ -15,7 +16,7 @@ from constants import (
     BREAK_TIME,
     LOGGING_LEVEL,
 )
-from database import AvitoAccounts
+from database import AvitoAccounts, session_maker
 from message_handler import generate_chatgpt_answer, handle_nontext_message
 from repository import get_active_avito_accounts
 from utils import generate_gpt_prompt
@@ -161,7 +162,7 @@ def read_message(account: AvitoAccounts, chat_id: str, retry=True) -> None:
         )
 
 
-def get_new_messages(account: AvitoAccounts, retry=True) -> None:
+def get_new_messages(session: Session, account: AvitoAccounts, retry=True) -> None:
     """
     Function to get new messages from Avito
     """
@@ -195,7 +196,7 @@ def get_new_messages(account: AvitoAccounts, retry=True) -> None:
                         user_id=chat_id,
                         message=message_content["content"]["text"],
                         engine=SUB_FOLDER_AVITO,
-                        system_prompt=generate_gpt_prompt(account),
+                        system_prompt=generate_gpt_prompt(session, account),
                     )
                     if not args.dry:
                         send_message_back(account, result, chat_id, retry=True)
@@ -209,7 +210,7 @@ def get_new_messages(account: AvitoAccounts, retry=True) -> None:
                         handle_nontext_message(
                             user_id=chat_id,
                             engine=SUB_FOLDER_AVITO,
-                            system_prompt=generate_gpt_prompt(account),
+                            system_prompt=generate_gpt_prompt(session, account),
                         )
                         read_message(account, chat_id, retry=True)
                     logger.warning(
@@ -225,7 +226,7 @@ def get_new_messages(account: AvitoAccounts, retry=True) -> None:
         # Handle 403 error by calling  function and call api back
         logger.debug("Need to get auth token")
         get_access_token(account)
-        get_new_messages(account, retry=False)
+        get_new_messages(session, account, retry=False)
 
     else:
         # Log errors for other status codes
@@ -251,7 +252,8 @@ if __name__ == "__main__":
         logger.info("Running in dry mode. Performing dry run actions...")
 
     while True:
-        for account in get_active_avito_accounts():
-            get_new_messages(account, retry=True)
+        with session_maker() as session:
+            for account in get_active_avito_accounts(session):
+                get_new_messages(session, account, retry=True)
 
         time.sleep(POLLING_INTERVAL)
