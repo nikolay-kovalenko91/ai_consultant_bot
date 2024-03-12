@@ -5,7 +5,7 @@ services:
     build:
       dockerfile: Dockerfile
     volumes:
-      - ./database.db:/src/database.db
+      - ./${SQLITE_DIR}:/src/${SQLITE_DIR}
     command: ["python", "avito_bot.py"]
 
   nocodb:
@@ -13,5 +13,5 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./database.db:/database.db
+      - ./${SQLITE_DIR}:/${SQLITE_DIR}
 
