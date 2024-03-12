@@ -32,6 +32,9 @@ SYSTEM_PROMPT: ChatGPT system prompt
 AVITO_USER_ID: Avito user ID
 AVITO_CLIENT_ID: Avito client ID
 AVITO_CLIENT_SECRET: Avito client secret code
+SQLITE_DIR=/database
+SQLITE_NAME=database.db
+
 
 SMTP_SERVER: SMTP server address
 SMTP_SERVER_PORT: SMTP server port
@@ -88,4 +91,4 @@ docker compose -f docker-compose.avito_bot.yml up
 
 Nocodb will be available on localhost:8080. 
 In it you need to add a new Data Source with 
-the 'SQLite' Database Type and '/database.db' SQLite File.
+the 'SQLite' Database Type and '/database/database.db' SQLite File.

@@ -45,4 +45,4 @@ dmypy.json
 docker-compose.override.yml
 
 # database
-database.db
+.database/

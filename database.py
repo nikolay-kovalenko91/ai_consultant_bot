@@ -1,7 +1,9 @@
 from sqlalchemy import create_engine, ForeignKey
 from sqlalchemy.orm import Mapped, sessionmaker, declarative_base, mapped_column, relationship, scoped_session
 
-engine = create_engine('sqlite:///database.db')
+from constants import SQLITE_DIR, SQLITE_NAME
+
+engine = create_engine(f'sqlite://{SQLITE_DIR}/{SQLITE_NAME}')
 
 session_maker = sessionmaker(
     engine, expire_on_commit=False,

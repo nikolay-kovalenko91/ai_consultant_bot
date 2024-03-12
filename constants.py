@@ -9,6 +9,10 @@ LOGGING_LEVEL = os.getenv('LOGGING_LEVEL', 'INFO').upper()
 POLLING_INTERVAL = int(os.environ.get("POLLING_INTERVAL", 10))
 BREAK_TIME = int(os.environ.get("BREAK_TIME", 3))
 
+#Avito
+SQLITE_DIR = os.environ["SQLITE_DIR"]
+SQLITE_NAME = os.environ["SQLITE_NAME"]
+
 # Telegram
 TELEGRAM_BOT_TOKEN = os.environ["BOT_TOKEN"]
 
