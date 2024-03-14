@@ -2,7 +2,7 @@ import os
 import openai
 import json
 import re
-from utils import send_contact, send_email, generate_gpt_prompt
+from utils import send_contact, send_email
 from constants import (
     OPENAI_API_KEY,
     CLOSING_MESSAGE,
@@ -43,7 +43,7 @@ def check_contact_number(text: str) -> bool:
 
 
 def get_or_create_history(
-        user_id: str, engine: str, system_prompt: str
+    user_id: str, engine: str, system_prompt: str
 ) -> tuple[str, list]:
     """
     Get existing chat history or create a new one if not exists
@@ -68,8 +68,9 @@ def get_or_create_history(
 
 
 def handle_nontext_message(
-        user_id: str, engine: str,
-        system_prompt: str = SYSTEM_PROMPT,
+    user_id: str,
+    engine: str,
+    system_prompt: str = SYSTEM_PROMPT,
 ) -> None:
     """
     Gets last message from chat history and sends to manager
@@ -118,8 +119,10 @@ def get_chat_completion(history: List[Dict[str, str]]) -> str:
 
 
 def generate_chatgpt_answer(
-        user_id: str, message: str,
-        engine: str, system_prompt=SYSTEM_PROMPT,
+    user_id: str,
+    message: str,
+    engine: str,
+    system_prompt=SYSTEM_PROMPT,
 ) -> str:
     """
     Chat GPT function

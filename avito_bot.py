@@ -93,8 +93,10 @@ def get_access_token(account: AvitoAccounts) -> None:
 
 
 def send_message_back(
-        account: AvitoAccounts, reply_message: str,
-        chat_id: str, retry=True,
+    account: AvitoAccounts,
+    reply_message: str,
+    chat_id: str,
+    retry=True,
 ) -> None:
     """
     Function to send message back to user
@@ -162,7 +164,9 @@ def read_message(account: AvitoAccounts, chat_id: str, retry=True) -> None:
         )
 
 
-def get_new_messages(session: Session, account: AvitoAccounts, retry=True) -> None:
+def get_new_messages(
+    session: Session, account: AvitoAccounts, retry=True
+) -> None:
     """
     Function to get new messages from Avito
     """
@@ -210,7 +214,10 @@ def get_new_messages(session: Session, account: AvitoAccounts, retry=True) -> No
                         handle_nontext_message(
                             user_id=chat_id,
                             engine=SUB_FOLDER_AVITO,
-                            system_prompt=generate_gpt_prompt(session, account),
+                            system_prompt=generate_gpt_prompt(
+                                session,
+                                account,
+                            ),
                         )
                         read_message(account, chat_id, retry=True)
                     logger.warning(
