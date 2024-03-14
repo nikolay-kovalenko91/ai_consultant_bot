@@ -1,3 +1,5 @@
+from typing import Optional
+
 from sqlalchemy import create_engine, ForeignKey
 from sqlalchemy.orm import (
     Mapped,
@@ -25,7 +27,9 @@ Base = declarative_base()
 class AvitoAccounts(Base):
     __tablename__ = "avito_accounts"
 
-    user_id: Mapped[str] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[str] = mapped_column(unique=True)
+    name: Mapped[Optional[str]]
     client_id: Mapped[str]
     client_secret: Mapped[str]
     is_active: Mapped[bool]
@@ -40,8 +44,8 @@ class Faq(Base):
     __tablename__ = "faq"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    account_id: Mapped[str] = mapped_column(
-        ForeignKey("avito_accounts.user_id"),
+    account_id: Mapped[int] = mapped_column(
+        ForeignKey("avito_accounts.id"),
     )
     question: Mapped[str]
     answer: Mapped[str]
