@@ -29,7 +29,7 @@ BOT_TOKEN: Telegram API key
 OPENAI_API_KEY: ChatGPT API key
 SYSTEM_PROMPT: ChatGPT system prompt
 
-DATABASE_DNS: sqlite:///db/database.db
+DATABASE_DNS: sqlite:///database/database.db
 
 SMTP_SERVER: SMTP server address
 SMTP_SERVER_PORT: SMTP server port
@@ -86,4 +86,4 @@ docker compose -f docker-compose.avito_bot.yml up
 
 Nocodb will be available on localhost:8080. 
 In it you need to add a new Data Source with 
-the 'SQLite' Database Type and '/usr/app/data/$SQLITE_NAME' SQLite File.
+the 'SQLite' Database Type and '/usr/src/app/database/< database file name >' SQLite File.

@@ -5,7 +5,7 @@ services:
     build:
       dockerfile: Dockerfile
     volumes:
-      - ./db:/src/db
+      - ./database:/src/database
     command: ["python", "avito_bot.py"]
 
   nocodb:
@@ -13,5 +13,5 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./db:/usr/app/data/
+      - ./database:/usr/src/app/database
 
