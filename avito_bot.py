@@ -260,7 +260,12 @@ if __name__ == "__main__":
 
     while True:
         with session_maker() as session:
-            for account in get_active_avito_accounts(session):
+            active_accounts = get_active_avito_accounts(session)
+
+            if args.dry:
+                logger.info(f"Got {len(active_accounts)} active accounts to process")
+
+            for account in active_accounts:
                 get_new_messages(session, account, retry=True)
 
         time.sleep(POLLING_INTERVAL)
