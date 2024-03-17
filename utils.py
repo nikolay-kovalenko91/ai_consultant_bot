@@ -1,6 +1,12 @@
+import csv
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from io import StringIO
+from typing import Sequence
+
+from sqlalchemy import Row
+
 from constants import (
     SMTP_EMAIL,
     SMTP_SERVER,
@@ -10,6 +16,8 @@ from constants import (
     CLOSING_MESSAGE_SUBJECT,
     CLOSING_MESSAGE_BODY,
 )
+from database import AvitoAccounts
+from repository import get_avito_accounts_faqs
 
 
 def send_email(to_address: str, subject: str, body: str) -> None:
@@ -38,4 +46,28 @@ def send_contact(phone: str) -> None:
         EMAIL_RECEIVER,
         CLOSING_MESSAGE_SUBJECT,
         f"{CLOSING_MESSAGE_BODY} {phone}",
+    )
+
+
+def to_csv_string(sql_rows: Sequence[Row]) -> str:
+    csv_result = StringIO()
+    wr = csv.writer(csv_result)
+    for sql_row in sql_rows:
+        wr.writerow(sql_row)
+
+    return csv_result.getvalue()
+
+
+def generate_gpt_prompt(session, account: AvitoAccounts) -> str:
+    accounts_faqs = to_csv_string(
+        get_avito_accounts_faqs(
+            session,
+            account.user_id,
+        )
+    )
+
+    return (
+        f"{account.prompt}\n"
+        f"Проанализируйте таблицу с ответами на частые вопросы:\n"
+        f"{accounts_faqs}"
     )

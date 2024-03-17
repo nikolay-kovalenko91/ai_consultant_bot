@@ -1,0 +1,17 @@
+services:
+  avito_bot:
+    env_file:
+      - .env
+    build:
+      dockerfile: Dockerfile
+    volumes:
+      - ./database:/src/database
+    command: ["python", "avito_bot.py"]
+
+  nocodb:
+    image: nocodb/nocodb:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./database:/usr/src/app/database
+
