@@ -29,7 +29,9 @@ BOT_TOKEN: Telegram API key
 OPENAI_API_KEY: ChatGPT API key
 SYSTEM_PROMPT: ChatGPT system prompt
 
-DATABASE_DNS: sqlite:///database/database.db
+DATABASE_DNS: Database connection string. You can omit it and then it will be 
+selected by default. If the castrom path is still specified, 
+then you need to redefine the mount folders in docker-compose.avito_bot.yml 
 
 SMTP_SERVER: SMTP server address
 SMTP_SERVER_PORT: SMTP server port
@@ -52,6 +54,9 @@ python telegram_bot.py
 
 ## Avito Bot
 
+if you run the bot from the command line, you need 
+to make sure that the directory in which the 
+database should be located exists.
 To launch the Avito bot, use:
 
 ```bash
