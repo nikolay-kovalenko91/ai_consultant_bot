@@ -10,7 +10,7 @@ POLLING_INTERVAL = int(os.environ.get("POLLING_INTERVAL", 10))
 BREAK_TIME = int(os.environ.get("BREAK_TIME", 3))
 
 # Avito
-DATABASE_DNS = os.environ["DATABASE_DNS"]
+DATABASE_DNS = os.environ.get("DATABASE_DNS", "sqlite:///database/database.db")
 
 # Telegram
 TELEGRAM_BOT_TOKEN = os.environ["BOT_TOKEN"]
