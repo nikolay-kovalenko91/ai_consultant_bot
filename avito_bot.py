@@ -262,7 +262,9 @@ if __name__ == "__main__":
         with session_maker() as session:
             active_accounts = get_active_avito_accounts(session)
 
-            logger.debug(f"Got {len(active_accounts)} active accounts to process")
+            logger.debug(
+                f"Got {len(active_accounts)} active accounts to process"
+            )
 
             for account in active_accounts:
                 get_new_messages(session, account, retry=True)
