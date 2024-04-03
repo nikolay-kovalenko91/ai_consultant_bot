@@ -29,9 +29,9 @@ BOT_TOKEN: Telegram API key
 OPENAI_API_KEY: ChatGPT API key
 SYSTEM_PROMPT: ChatGPT system prompt
 
-AVITO_USER_ID: Avito user ID
-AVITO_CLIENT_ID: Avito client ID
-AVITO_CLIENT_SECRET: Avito client secret code
+DATABASE_DNS: Database connection string. You can omit it and then it will be 
+selected by default. If the castrom path is still specified, 
+then you need to redefine the mount folders in docker-compose.avito_bot.yml 
 
 SMTP_SERVER: SMTP server address
 SMTP_SERVER_PORT: SMTP server port
@@ -54,6 +54,9 @@ python telegram_bot.py
 
 ## Avito Bot
 
+if you run the bot from the command line, you need 
+to make sure that the directory in which the 
+database should be located exists.
 To launch the Avito bot, use:
 
 ```bash
@@ -67,3 +70,25 @@ To see logs without sending actual API calls, run the Avito bot in dry mode:
 ```bash
 python avito_bot.py --dry
 ```
+
+# ▋Running the Bots with docker 
+
+## Telegram Bot
+
+To launch the Telegram bot with docker, use:
+
+```bash
+docker compose -f docker-compose.telegram_bot.yml up
+```
+
+## Avito Bot
+
+To launch the Avito bot with docker, use:
+
+```bash
+docker compose -f docker-compose.avito_bot.yml up
+```
+
+Nocodb will be available on localhost:8080. 
+In it you need to add a new Data Source with 
+the 'SQLite' Database Type and '/usr/src/app/database/< database file name >' SQLite File.

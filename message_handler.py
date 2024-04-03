@@ -42,7 +42,9 @@ def check_contact_number(text: str) -> bool:
     return False
 
 
-def get_or_create_history(user_id: str, engine: str):
+def get_or_create_history(
+    user_id: str, engine: str, system_prompt: str
+) -> tuple[str, list]:
     """
     Get existing chat history or create a new one if not exists
     """
@@ -60,17 +62,21 @@ def get_or_create_history(user_id: str, engine: str):
         history = json.load(file)
 
     if len(history) == 0:
-        history.append({"role": "system", "content": SYSTEM_PROMPT})
+        history.append({"role": "system", "content": system_prompt})
 
     return file_path, history
 
 
-def handle_nontext_message(user_id: str, engine: str) -> None:
+def handle_nontext_message(
+    user_id: str,
+    engine: str,
+    system_prompt: str = SYSTEM_PROMPT,
+) -> None:
     """
     Gets last message from chat history and sends to manager
     """
     # Make sure user have account, even if it not started bot.
-    file_path, history = get_or_create_history(user_id, engine)
+    file_path, history = get_or_create_history(user_id, engine, system_prompt)
 
     last_gpt_message = None
     for message in reversed(history):
@@ -112,14 +118,19 @@ def get_chat_completion(history: List[Dict[str, str]]) -> str:
     return completion.choices[0].message.content
 
 
-def generate_chatgpt_answer(user_id: str, message: str, engine: str) -> str:
+def generate_chatgpt_answer(
+    user_id: str,
+    message: str,
+    engine: str,
+    system_prompt=SYSTEM_PROMPT,
+) -> str:
     """
     Chat GPT function
     """
 
     # try:
     # Make sure user have account, even if it not started bot.
-    file_path, history = get_or_create_history(user_id, engine)
+    file_path, history = get_or_create_history(user_id, engine, system_prompt)
 
     history.append({"role": "user", "content": message})
 

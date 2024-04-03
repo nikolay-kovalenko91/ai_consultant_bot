@@ -7,21 +7,21 @@ import time
 from typing import Iterable, Type
 
 import requests
+from sqlalchemy.orm import Session
 
 from constants import (
-    CLIENT_ID,
-    CLIENT_SECRET,
-    AVITO_USER_ID,
     BASE_FOLDER,
     SUB_FOLDER_AVITO,
     POLLING_INTERVAL,
     BREAK_TIME,
     LOGGING_LEVEL,
 )
+from database import AvitoAccounts, session_maker
 from message_handler import generate_chatgpt_answer, handle_nontext_message
+from repository import get_active_avito_accounts
+from utils import generate_gpt_prompt
 
-
-ACCESS_TOKEN = None
+access_tokens: dict[str, str] = dict()
 
 logging.basicConfig(format="%(asctime)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -64,19 +64,18 @@ def parse_args():
     return parser.parse_args()
 
 
-def get_access_token() -> None:
+def get_access_token(account: AvitoAccounts) -> None:
     """
     Function to get new access token
     """
-    global ACCESS_TOKEN
 
     # Set up headers
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
     # Params
     data = {
-        "client_id": CLIENT_ID,
-        "client_secret": CLIENT_SECRET,
+        "client_id": account.client_id,
+        "client_secret": account.client_secret,
         "grant_type": "client_credentials",
     }
 
@@ -87,23 +86,25 @@ def get_access_token() -> None:
 
     if response.status_code == 200:
         # Save the token to token.json in the desired format
-        ACCESS_TOKEN = response.json().get("access_token")
+        access_token = response.json().get("access_token")
+        access_tokens[account.user_id] = access_token
     else:
         logger.error(f"Token error : {response.status_code}, {response.text}")
 
 
-def send_message_back(reply_message: str, chat_id: str, retry=True) -> None:
+def send_message_back(
+    account: AvitoAccounts,
+    reply_message: str,
+    chat_id: str,
+    retry=True,
+) -> None:
     """
     Function to send message back to user
     """
 
-    # If access token is none get new one
-    if ACCESS_TOKEN is None:
-        get_access_token()
-
     # Set up headers
     headers = {
-        "Authorization": f"Bearer {ACCESS_TOKEN}",
+        "Authorization": f"Bearer {access_tokens.get(account.user_id)}",
         "Content-Type": "application/json",
     }
 
@@ -113,7 +114,7 @@ def send_message_back(reply_message: str, chat_id: str, retry=True) -> None:
     # Make the API call
     response = requests.post(
         (
-            f"https://api.avito.ru/messenger/v1/accounts/{AVITO_USER_ID}/"
+            f"https://api.avito.ru/messenger/v1/accounts/{account.user_id}/"
             f"chats/{chat_id}/messages"
         ),
         headers=headers,
@@ -126,7 +127,7 @@ def send_message_back(reply_message: str, chat_id: str, retry=True) -> None:
     elif response.status_code == 403 and retry:
         # Handle 403 error by calling  function and call api back
         logger.debug("Need to get auth token")
-        get_access_token()
+        get_access_token(account)
         send_message_back(reply_message, chat_id, retry=False)
     else:
         logger.error(
@@ -135,21 +136,16 @@ def send_message_back(reply_message: str, chat_id: str, retry=True) -> None:
         )
 
 
-def read_message(chat_id: str, retry=True) -> None:
+def read_message(account: AvitoAccounts, chat_id: str, retry=True) -> None:
     """
     Function to make message to be read
     """
-
-    # If access token is none get new one
-    if ACCESS_TOKEN is None:
-        get_access_token()
-
     # Set up headers for API request
-    headers = {"Authorization": f"Bearer {ACCESS_TOKEN}"}
+    headers = {"Authorization": f"Bearer {access_tokens.get(account.user_id)}"}
 
     response = requests.post(
         (
-            f"https://api.avito.ru/messenger/v1/accounts/{AVITO_USER_ID}/"
+            f"https://api.avito.ru/messenger/v1/accounts/{account.user_id}/"
             f"chats/{chat_id}/read"
         ),
         headers=headers,
@@ -159,7 +155,7 @@ def read_message(chat_id: str, retry=True) -> None:
     elif response.status_code == 403 and retry:
         # Handle 403 error by calling  function and call api back
         logger.debug("Need to get auth token")
-        get_access_token()
+        get_access_token(account)
         read_message(chat_id, retry=False)
     else:
         logger.error(
@@ -168,18 +164,20 @@ def read_message(chat_id: str, retry=True) -> None:
         )
 
 
-def get_new_messages(retry=True):
+def get_new_messages(
+    session: Session, account: AvitoAccounts, retry=True
+) -> None:
     """
     Function to get new messages from Avito
     """
 
     # Set up headers for API request
-    headers = {"Authorization": f"Bearer {ACCESS_TOKEN}"}
+    headers = {"Authorization": f"Bearer {access_tokens.get(account.user_id)}"}
 
     # Make the API call
     response = requests.get(
         (
-            f"https://api.avito.ru/messenger/v2/accounts/{AVITO_USER_ID}/"
+            f"https://api.avito.ru/messenger/v2/accounts/{account.user_id}/"
             f"chats?unread_only=true"
         ),
         headers=headers,
@@ -202,9 +200,10 @@ def get_new_messages(retry=True):
                         user_id=chat_id,
                         message=message_content["content"]["text"],
                         engine=SUB_FOLDER_AVITO,
+                        system_prompt=generate_gpt_prompt(session, account),
                     )
                     if not args.dry:
-                        send_message_back(result, chat_id, retry=True)
+                        send_message_back(account, result, chat_id, retry=True)
                         time.sleep(BREAK_TIME)
                     logger.debug(
                         f"Got message={message_content['content']}'; "
@@ -213,9 +212,14 @@ def get_new_messages(retry=True):
                 else:
                     if not args.dry:
                         handle_nontext_message(
-                            user_id=chat_id, engine=SUB_FOLDER_AVITO
+                            user_id=chat_id,
+                            engine=SUB_FOLDER_AVITO,
+                            system_prompt=generate_gpt_prompt(
+                                session,
+                                account,
+                            ),
                         )
-                        read_message(chat_id, retry=True)
+                        read_message(account, chat_id, retry=True)
                     logger.warning(
                         f"Got non-text message from chat ->'{chat_id}'"
                     )
@@ -228,8 +232,8 @@ def get_new_messages(retry=True):
     elif response.status_code == 403 and retry:
         # Handle 403 error by calling  function and call api back
         logger.debug("Need to get auth token")
-        get_access_token()
-        get_new_messages(retry=False)
+        get_access_token(account)
+        get_new_messages(session, account, retry=False)
 
     else:
         # Log errors for other status codes
@@ -253,6 +257,16 @@ if __name__ == "__main__":
     args = parse_args()
     if args.dry:
         logger.info("Running in dry mode. Performing dry run actions...")
+
     while True:
-        get_new_messages(retry=True)
+        with session_maker() as session:
+            active_accounts = get_active_avito_accounts(session)
+
+            logger.debug(
+                f"Got {len(active_accounts)} active accounts to process"
+            )
+
+            for account in active_accounts:
+                get_new_messages(session, account, retry=True)
+
         time.sleep(POLLING_INTERVAL)
