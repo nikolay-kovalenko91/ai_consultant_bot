@@ -16,6 +16,8 @@ def get_avito_accounts_faqs(
     session: Session,
     account_id: int,
 ) -> Sequence[Row[tuple[str, str]]]:
-    statement = select(Faq.question, Faq.answer).filter_by(account_id=account_id)
+    statement = select(Faq.question, Faq.answer).filter_by(
+        account_id=account_id,
+    )
 
     return session.execute(statement).all()
