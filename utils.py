@@ -62,12 +62,15 @@ def generate_gpt_prompt(session, account: AvitoAccounts) -> str:
     accounts_faqs = to_csv_string(
         get_avito_accounts_faqs(
             session,
-            account.user_id,
+            account.id,
         )
     )
 
-    return (
-        f"{account.prompt}\n"
-        f"Проанализируйте таблицу с ответами на частые вопросы:\n"
-        f"{accounts_faqs}"
-    )
+    if accounts_faqs:
+        return (
+            f"{account.prompt}\n"
+            f"Проанализируйте таблицу с ответами на частые вопросы:\n"
+            f"{accounts_faqs}"
+        )
+
+    return account.prompt
