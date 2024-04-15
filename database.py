@@ -38,6 +38,7 @@ class AvitoAccounts(Base):
         back_populates="account",
     )
 
+
 class Faq(Base):
     __tablename__ = "faq"
 
@@ -50,21 +51,25 @@ class Faq(Base):
 
     account: Mapped["AvitoAccounts"] = relationship(back_populates="faqs")
 
+
 class TelegramAccounts(Base):
-    __tablename__ = 'telegram_accounts'
+    __tablename__ = "telegram_accounts"
 
     id = Column(Integer, primary_key=True)
     token = Column(String)
     prompts = relationship("Prompt", back_populates="telegram_account")
 
+
 class Prompt(Base):
-    __tablename__ = 'prompts'
+    __tablename__ = "prompts"
 
     id = Column(Integer, primary_key=True)
     text = Column(String)
     telegram_account_id = Column(Integer, ForeignKey("telegram_accounts.id"))
 
-    telegram_account = relationship("TelegramAccounts", back_populates="prompts")
+    telegram_account = relationship(
+        "TelegramAccounts", back_populates="prompts"
+    )
 
 
 Base.metadata.create_all(engine)
