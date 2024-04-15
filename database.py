@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlalchemy import create_engine, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
 from sqlalchemy.orm import (
     Mapped,
     sessionmaker,
@@ -9,7 +9,6 @@ from sqlalchemy.orm import (
     relationship,
     scoped_session,
 )
-
 from constants import DATABASE_DNS
 
 engine = create_engine(DATABASE_DNS)
@@ -39,7 +38,6 @@ class AvitoAccounts(Base):
         back_populates="account",
     )
 
-
 class Faq(Base):
     __tablename__ = "faq"
 
@@ -51,6 +49,22 @@ class Faq(Base):
     answer: Mapped[str]
 
     account: Mapped["AvitoAccounts"] = relationship(back_populates="faqs")
+
+class TelegramAccounts(Base):
+    __tablename__ = 'telegram_accounts'
+
+    id = Column(Integer, primary_key=True)
+    token = Column(String)
+    prompts = relationship("Prompt", back_populates="telegram_account")
+
+class Prompt(Base):
+    __tablename__ = 'prompts'
+
+    id = Column(Integer, primary_key=True)
+    text = Column(String)
+    telegram_account_id = Column(Integer, ForeignKey("telegram_accounts.id"))
+
+    telegram_account = relationship("TelegramAccounts", back_populates="prompts")
 
 
 Base.metadata.create_all(engine)

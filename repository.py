@@ -3,7 +3,7 @@ from typing import Sequence
 from sqlalchemy import select, Row
 from sqlalchemy.orm import Session
 
-from database import AvitoAccounts, Faq
+from database import AvitoAccounts, Faq, Prompt
 
 
 def get_active_avito_accounts(session: Session) -> Sequence[AvitoAccounts]:
@@ -21,3 +21,12 @@ def get_avito_accounts_faqs(
     )
 
     return session.execute(statement).all()
+
+
+def get_account_prompts(telegram_account_id: str, session: Session) -> str:
+    statement = select(Prompt).filter_by(
+        telegram_account_id=telegram_account_id
+    )
+    results = session.execute(statement).all()
+    if len(results) != 0:
+        return results[0][0].text

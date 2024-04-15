@@ -43,12 +43,15 @@ def check_contact_number(text: str) -> bool:
 
 
 def get_or_create_history(
-    user_id: str, engine: str, system_prompt: str
+    user_id: str, engine: str, chat: str, system_prompt: str
 ) -> tuple[str, list]:
     """
     Get existing chat history or create a new one if not exists
     """
-    folder_path = f"{BASE_FOLDER}/{engine}/{user_id}"
+    if chat is not None:
+        folder_path = f"{BASE_FOLDER}/{engine}/{chat}/{user_id}"
+    else:
+        folder_path = f"{BASE_FOLDER}/{engine}/{user_id}"
     file_path = f"{folder_path}/history.json"
 
     if not os.path.exists(folder_path):
@@ -122,19 +125,26 @@ def generate_chatgpt_answer(
     user_id: str,
     message: str,
     engine: str,
+    chat: str = None,
     system_prompt=SYSTEM_PROMPT,
 ) -> str:
     """
     Chat GPT function
     """
 
-    # try:
-    # Make sure user have account, even if it not started bot.
-    file_path, history = get_or_create_history(user_id, engine, system_prompt)
+    # Make sure user has an account, even if they have not started the bot.
+    if chat is not None:
+        file_path, history = get_or_create_history(
+            user_id, engine, chat, system_prompt
+        )
+    else:
+        file_path, history = get_or_create_history(
+            user_id, engine, None, system_prompt
+        )
 
     history.append({"role": "user", "content": message})
 
-    # Check if text is valid phone number or not
+    # Check if text is a valid phone number or not
     if check_contact_number(message):
         history.append({"role": "assistant", "content": CLOSING_MESSAGE})
         with open(file_path, "w") as file:
