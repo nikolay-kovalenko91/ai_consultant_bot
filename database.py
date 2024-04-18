@@ -1,6 +1,3 @@
-from typing import Optional
-
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
 from sqlalchemy.orm import (
     Mapped,
     sessionmaker,
@@ -9,17 +6,22 @@ from sqlalchemy.orm import (
     relationship,
     scoped_session,
 )
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
+from sqlalchemy.orm import (
+    sessionmaker,
+    declarative_base,
+    relationship,
+    scoped_session,
+)
+from typing import Optional
 from constants import DATABASE_DNS
 
 engine = create_engine(DATABASE_DNS)
-
 session_maker = sessionmaker(
     engine,
     expire_on_commit=False,
 )
-
 current_session = scoped_session(session_maker)
-
 Base = declarative_base()
 
 
@@ -32,11 +34,34 @@ class AvitoAccounts(Base):
     client_id: Mapped[str]
     client_secret: Mapped[str]
     is_active: Mapped[bool]
-    prompt: Mapped[str]
+    prompt_id = Column(Integer, ForeignKey("prompts.id"))
 
+    prompt = relationship("Prompt", back_populates="avito_accounts")
     faqs: Mapped[list["Faq"]] = relationship(
         back_populates="account",
     )
+
+
+class TelegramAccount(Base):
+    __tablename__ = "telegram_accounts"
+
+    id = Column(Integer, primary_key=True)
+    token = Column(String)
+    prompt_id = Column(Integer, ForeignKey("prompts.id"))
+
+    prompt = relationship("Prompt", back_populates="telegram_accounts")
+
+
+class Prompt(Base):
+    __tablename__ = "prompts"
+
+    id = Column(Integer, primary_key=True)
+    text = Column(String)
+
+    telegram_accounts = relationship(
+        "TelegramAccount", back_populates="prompt"
+    )
+    avito_accounts = relationship("AvitoAccounts", back_populates="prompt")
 
 
 class Faq(Base):
@@ -50,26 +75,6 @@ class Faq(Base):
     answer: Mapped[str]
 
     account: Mapped["AvitoAccounts"] = relationship(back_populates="faqs")
-
-
-class TelegramAccounts(Base):
-    __tablename__ = "telegram_accounts"
-
-    id = Column(Integer, primary_key=True)
-    token = Column(String)
-    prompts = relationship("Prompt", back_populates="telegram_account")
-
-
-class Prompt(Base):
-    __tablename__ = "prompts"
-
-    id = Column(Integer, primary_key=True)
-    text = Column(String)
-    telegram_account_id = Column(Integer, ForeignKey("telegram_accounts.id"))
-
-    telegram_account = relationship(
-        "TelegramAccounts", back_populates="prompts"
-    )
 
 
 Base.metadata.create_all(engine)

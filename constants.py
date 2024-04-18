@@ -12,9 +12,6 @@ BREAK_TIME = int(os.environ.get("BREAK_TIME", 3))
 # Avito
 DATABASE_DNS = os.environ.get("DATABASE_DNS", "sqlite:///database/database.db")
 
-# Telegram
-TELEGRAM_BOT_TOKEN = os.environ["BOT_TOKEN"]
-
 # OpenAI
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 SYSTEM_PROMPT = os.environ["SYSTEM_PROMPT"]

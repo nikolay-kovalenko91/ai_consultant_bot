@@ -133,13 +133,8 @@ def generate_chatgpt_answer(
     """
 
     # Make sure user has an account, even if they have not started the bot.
-    if chat is not None:
-        file_path, history = get_or_create_history(
+    file_path, history = get_or_create_history(
             user_id, engine, chat, system_prompt
-        )
-    else:
-        file_path, history = get_or_create_history(
-            user_id, engine, None, system_prompt
         )
 
     history.append({"role": "user", "content": message})

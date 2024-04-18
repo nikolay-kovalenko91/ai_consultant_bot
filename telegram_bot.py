@@ -1,35 +1,46 @@
+from sqlalchemy.orm import joinedload
 import telebot
-import threading
 import os
 import json
 import logging
-from database import session_maker, TelegramAccounts
-from constants import BASE_FOLDER, SUB_FOLDER_TG, LOGGING_LEVEL
+from database import session_maker, TelegramAccount
+from constants import (
+    BASE_FOLDER,
+    SUB_FOLDER_TG,
+    LOGGING_LEVEL,
+    POLLING_INTERVAL,
+)
 from message_handler import generate_chatgpt_answer
-from repository import get_account_prompts
 from telebot import types
+import telebot
+from sqlalchemy.orm import joinedload
+import time
+from schema import BotInfo
 
 logging.basicConfig(format="%(asctime)s - %(message)s")
 logger = logging.getLogger(__name__)
 logger.setLevel(level=LOGGING_LEVEL)
 
 
-def get_bots() -> list:
+def get_bots() -> list[BotInfo]:
     """
     Retrieve Telegram bot instances from the database and set bot commands.
     """
     bots = []
     with session_maker() as session:
-        accounts = session.query(TelegramAccounts).all()
+        accounts = (
+            session.query(TelegramAccount)
+            .options(joinedload(TelegramAccount.prompt))
+            .all()
+        )
+
         for account in accounts:
-            bot = {}
-            prompt = get_account_prompts(account.id, session)
-            bot["id"] = account.id
-            bot["instance"] = telebot.TeleBot(account.token)
-            bot["prompt"] = prompt
+            prompt = account.prompt.text
+
+            bot_instance = telebot.TeleBot(account.token)
 
             # Set bot commands
-            bot["instance"].set_my_commands(
+            bot_instance.set_my_commands(
                 [
                     types.BotCommand(
                         command="start", description="Старт бота"
@@ -40,7 +51,10 @@ def get_bots() -> list:
                 ]
             )
 
-            bots.append(bot)
+            bot_info = BotInfo(
+                id=account.id, instance=bot_instance, prompt=prompt
+            )
+            bots.append(bot_info)
     return bots
 
 
@@ -79,35 +93,33 @@ def escape_markdown(string: str) -> str:
     )
 
 
-def gpt_command_handler(message: telebot.types.Message, bot: dict) -> None:
+def reset_command_handler(message: telebot.types.Message, bot: dict) -> None:
     """
     Function to handle /history command
     """
-    INNER = bot["id"]
+    BOT_ID = bot.id
     user_id = f"{message.from_user.first_name}_{message.from_user.id}"
 
     # Clear history
     with open(
-        f"{BASE_FOLDER}/{SUB_FOLDER_TG}/{INNER}/{user_id}/history.json", "w"
+        f"{BASE_FOLDER}/{SUB_FOLDER_TG}/{BOT_ID}/{user_id}/history.json", "w"
     ) as file:
         json.dump([], file)
 
     # Send message to user
-    bot["instance"].send_chat_action(chat_id=message.chat.id, action="typing")
-    bot["instance"].reply_to(message=message, text="История очищена")
+    bot.instance.send_chat_action(chat_id=message.chat.id, action="typing")
+    bot.instance.reply_to(message=message, text="История очищена")
 
 
-def start_command_handler(
-    message: telebot.types.Message, instance: dict
-) -> None:
+def start_command_handler(message: telebot.types.Message, instance) -> None:
     """
     Function to handle /start command
     """
-    bot = instance["instance"]
+    bot = instance.instance
     user_id = f"{message.from_user.first_name}_{message.from_user.id}"
 
-    INNER = instance["id"]
-    user_folder = f"{BASE_FOLDER}/{SUB_FOLDER_TG}/{INNER}/{user_id}"
+    BOT_ID = instance.id
+    user_folder = f"{BASE_FOLDER}/{SUB_FOLDER_TG}/{BOT_ID}/{user_id}"
     if os.path.exists(user_folder):
         # Send welcome back message to existing user
         bot.send_chat_action(chat_id=message.chat.id, action="typing")
@@ -144,7 +156,7 @@ def handle_messages(message: telebot.types.Message, instance: dict) -> None:
     """
     Function to handle all text messages
     """
-    bot = instance["instance"]
+    bot = instance.instance
     user_id = f"{message.from_user.first_name}_{message.from_user.id}"
     user_prompt = message.text.strip()
 
@@ -164,8 +176,8 @@ def handle_messages(message: telebot.types.Message, instance: dict) -> None:
                 user_id=user_id,
                 message=user_prompt,
                 engine=SUB_FOLDER_TG,
-                chat=instance["id"],
-                system_prompt=instance["prompt"],
+                chat=instance.id,
+                system_prompt=instance.prompt,
             )
 
             bot.edit_message_text(
@@ -190,8 +202,8 @@ def handle_messages(message: telebot.types.Message, instance: dict) -> None:
                 user_id=user_id,
                 message=user_prompt,
                 engine=SUB_FOLDER_TG,
-                chat=instance["id"],
-                system_prompt=instance["prompt"],
+                chat=instance.id,
+                system_prompt=instance.prompt,
             )
             result = "[Empty Result]" if not result else result
 
@@ -205,57 +217,45 @@ def handle_messages(message: telebot.types.Message, instance: dict) -> None:
             logger.exception("Error sending tg message")
 
 
-def connect_bot(bot_instance: dict) -> None:
-    """
-    Function to connect to Telegram bot instance and handle messages.
-    """
-    last_update_id = 0
+COMMANDS_HANDLERS = {
+    "/start": start_command_handler,
+    "/reset": reset_command_handler,
+}
+
+
+def start_bot():
+
+    # Initialize the last_update_ids dict
+    last_update_ids = {bot_info.id: 0 for bot_info in get_bots()}
     while True:
-        updates = bot_instance["instance"].get_updates(
-            offset=last_update_id + 1
-        )
-        for update in updates:
-            message = update.message
-            if message is not None and message.content_type == "text":
-                last_update_id = update.update_id
-                if message.text == "/start":
-                    start_command_handler(message, bot_instance)
-                elif message.text == "/reset":
-                    gpt_command_handler(message, bot_instance)
+        bots = get_bots()
+        bots_count = len(bots)
+
+        for bot_info in bots:
+            bot_instance = bot_info.instance
+
+            # Get the last_update_id for this bot
+            last_update_id = last_update_ids[bot_info.id]
+            updates = bot_instance.get_updates(offset=last_update_id + 1)
+
+            for update in updates:
+                message = update.message
+                if message is not None and message.content_type == "text":
+
+                    # Update the last_update_id for this bot
+                    last_update_ids[bot_info.id] = update.update_id
+                    command_handler = COMMANDS_HANDLERS.get(
+                        message.text.strip()
+                    )
+                    if command_handler:
+                        command_handler(message, bot_info)
+                    else:
+                        handle_messages(message, bot_info)
                 else:
-                    handle_messages(message, bot_instance)
-            else:
-                # if sent message is not text it will be passed
-                logger.warning("Non text message recieved")
-                pass
-
-
-def create_threads(bots: list) -> list:
-    """
-    Function to create and start threads for each Telegram bot instance.
-    """
-    threads = []
-    for bot in bots:
-        thread = threading.Thread(target=connect_bot, args=(bot,))
-        threads.append(thread)
-        thread.start()
-    return threads
-
-
-def main() -> None:
-    """
-    Main function to start the Telegram bot threads.
-    """
-    # Retrieve Telegram bot instances
-    bots = get_bots()
-
-    # Create and start threads for each Telegram bot instance
-    threads = create_threads(bots)
-
-    # Wait for all threads to complete
-    for thread in threads:
-        thread.join()
+                    # if sent message is not text it will be passed
+                    logger.warning("Non text message received")
+            time.sleep(max(POLLING_INTERVAL / bots_count, 1))
 
 
 if __name__ == "__main__":
-    main()
+    start_bot()
