@@ -222,7 +222,6 @@ COMMANDS_HANDLERS = {
 
 
 def start_bot():
-
     # Initialize the last_update_ids dict
     last_update_ids = {bot_info.id: 0 for bot_info in get_bots()}
     while True:
@@ -239,7 +238,6 @@ def start_bot():
             for update in updates:
                 message = update.message
                 if message is not None and message.content_type == "text":
-
                     # Update the last_update_id for this bot
                     last_update_ids[bot_info.id] = update.update_id
                     command_handler = COMMANDS_HANDLERS.get(
