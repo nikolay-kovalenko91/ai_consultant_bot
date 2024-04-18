@@ -42,7 +42,9 @@ def backoff_decorator(
                 except exceptions as e:
                     logger.warning(f"Request failed; {e=}. Retrying...")
                     retries += 1
-                    sleep = backoff_seconds * 2**retries + random.uniform(0, 1)
+                    sleep = backoff_seconds * 2**retries + random.uniform(
+                        0, 1
+                    )
                     time.sleep(sleep)
             raise ConnectionError(
                 f"{max_retries=} reached. Unable to make the request"
