@@ -7,12 +7,6 @@ from sqlalchemy.orm import (
     scoped_session,
 )
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
-from sqlalchemy.orm import (
-    sessionmaker,
-    declarative_base,
-    relationship,
-    scoped_session,
-)
 from typing import Optional
 from constants import DATABASE_DNS
 

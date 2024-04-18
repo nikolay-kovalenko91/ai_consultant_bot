@@ -1,5 +1,3 @@
-from sqlalchemy.orm import joinedload
-import telebot
 import os
 import json
 import logging
