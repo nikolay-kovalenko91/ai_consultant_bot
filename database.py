@@ -42,6 +42,7 @@ class TelegramAccount(Base):
     id = Column(Integer, primary_key=True)
     token = Column(String)
     prompt_id = Column(Integer, ForeignKey("prompts.id"))
+    is_active: Mapped[bool]
 
     prompt = relationship("Prompt", back_populates="telegram_accounts")
 

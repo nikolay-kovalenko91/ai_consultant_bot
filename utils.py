@@ -6,7 +6,7 @@ from io import StringIO
 from typing import Sequence
 from sqlalchemy import Row
 from database import AvitoAccounts
-from repository import get_avito_accounts_faqs, get_avito_accounts_prompt
+from repository import get_avito_accounts_faqs
 from constants import (
     SMTP_EMAIL,
     SMTP_SERVER,
@@ -71,4 +71,4 @@ def generate_gpt_prompt(session, account: AvitoAccounts) -> str:
             f"{accounts_faqs}"
         )
 
-    return get_avito_accounts_prompt(session, account.id)
+    return account.prompt.text

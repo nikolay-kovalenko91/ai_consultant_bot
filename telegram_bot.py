@@ -1,7 +1,7 @@
 import os
 import json
 import logging
-from database import session_maker, TelegramAccount
+from database import session_maker
 from constants import (
     BASE_FOLDER,
     SUB_FOLDER_TG,
@@ -11,48 +11,50 @@ from constants import (
 from message_handler import generate_chatgpt_answer
 from telebot import types
 import telebot
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import Session
 import time
-from schema import BotInfo
+from repository import get_active_telegram_bot_accounts
+from dataclasses import dataclass
+
 
 logging.basicConfig(format="%(asctime)s - %(message)s")
 logger = logging.getLogger(__name__)
 logger.setLevel(level=LOGGING_LEVEL)
 
 
-def get_bots() -> list[BotInfo]:
+@dataclass
+class BotInfo:
+    id: int
+    instance: telebot.TeleBot
+    prompt: str
+    offset: int = 0
+
+
+def get_bots(session: Session) -> list[BotInfo]:
     """
     Retrieve Telegram bot instances from the database and set bot commands.
     """
     bots = []
-    with session_maker() as session:
-        accounts = (
-            session.query(TelegramAccount)
-            .options(joinedload(TelegramAccount.prompt))
-            .all()
+    accounts = get_active_telegram_bot_accounts(session)
+    for account in accounts:
+        bot_instance = telebot.TeleBot(account.token)
+
+        # Set bot commands
+        bot_instance.set_my_commands(
+            [
+                types.BotCommand(command="start", description="Старт бота"),
+                types.BotCommand(
+                    command="reset", description="Сбросить историю чата"
+                ),
+            ]
         )
 
-        for account in accounts:
-            prompt = account.prompt.text
-
-            bot_instance = telebot.TeleBot(account.token)
-
-            # Set bot commands
-            bot_instance.set_my_commands(
-                [
-                    types.BotCommand(
-                        command="start", description="Старт бота"
-                    ),
-                    types.BotCommand(
-                        command="reset", description="Сбросить историю чата"
-                    ),
-                ]
-            )
-
-            bot_info = BotInfo(
-                id=account.id, instance=bot_instance, prompt=prompt
-            )
-            bots.append(bot_info)
+        bot_info = BotInfo(
+            id=account.id,
+            instance=bot_instance,
+            prompt=account.prompt.text,
+        )
+        bots.append(bot_info)
     return bots
 
 
@@ -91,16 +93,17 @@ def escape_markdown(string: str) -> str:
     )
 
 
-def reset_command_handler(message: telebot.types.Message, bot: dict) -> None:
+def reset_command_handler(
+    message: telebot.types.Message, bot: BotInfo
+) -> None:
     """
     Function to handle /history command
     """
-    BOT_ID = bot.id
     user_id = f"{message.from_user.first_name}_{message.from_user.id}"
 
     # Clear history
     with open(
-        f"{BASE_FOLDER}/{SUB_FOLDER_TG}/{BOT_ID}/{user_id}/history.json", "w"
+        f"{BASE_FOLDER}/{SUB_FOLDER_TG}/{bot.id}/{user_id}/history.json", "w"
     ) as file:
         json.dump([], file)
 
@@ -109,19 +112,20 @@ def reset_command_handler(message: telebot.types.Message, bot: dict) -> None:
     bot.instance.reply_to(message=message, text="История очищена")
 
 
-def start_command_handler(message: telebot.types.Message, instance) -> None:
+def start_command_handler(
+    message: telebot.types.Message, bot: BotInfo
+) -> None:
     """
     Function to handle /start command
     """
-    bot = instance.instance
+    instance = bot.instance
     user_id = f"{message.from_user.first_name}_{message.from_user.id}"
 
-    BOT_ID = instance.id
-    user_folder = f"{BASE_FOLDER}/{SUB_FOLDER_TG}/{BOT_ID}/{user_id}"
+    user_folder = f"{BASE_FOLDER}/{SUB_FOLDER_TG}/{bot.id}/{user_id}"
     if os.path.exists(user_folder):
         # Send welcome back message to existing user
-        bot.send_chat_action(chat_id=message.chat.id, action="typing")
-        bot.reply_to(
+        instance.send_chat_action(chat_id=message.chat.id, action="typing")
+        instance.reply_to(
             message=message,
             text=(
                 f"Привет {message.from_user.first_name}.\nНапиши сообщение,"
@@ -139,8 +143,8 @@ def start_command_handler(message: telebot.types.Message, instance) -> None:
             json.dump([], file)
 
         # Send welcome back message to existing user
-        bot.send_chat_action(chat_id=message.chat.id, action="typing")
-        bot.reply_to(
+        instance.send_chat_action(chat_id=message.chat.id, action="typing")
+        instance.reply_to(
             message=message,
             text=(
                 f"Привет {message.from_user.first_name}.\nНапиши сообщение,"
@@ -150,21 +154,21 @@ def start_command_handler(message: telebot.types.Message, instance) -> None:
         )
 
 
-def handle_messages(message: telebot.types.Message, instance: dict) -> None:
+def handle_messages(message: telebot.types.Message, bot: BotInfo) -> None:
     """
     Function to handle all text messages
     """
-    bot = instance.instance
+    instance = bot.instance
     user_id = f"{message.from_user.first_name}_{message.from_user.id}"
     user_prompt = message.text.strip()
 
     if (
         message.reply_to_message
-        and message.reply_to_message.from_user.id == bot.get_me().id
+        and message.reply_to_message.from_user.id == instance.get_me().id
     ):
         try:
-            bot.send_chat_action(chat_id=message.chat.id, action="typing")
-            gpt_prompt = bot.reply_to(
+            instance.send_chat_action(chat_id=message.chat.id, action="typing")
+            gpt_prompt = instance.reply_to(
                 message=message,
                 text="Думаю над ответом\.\.\.",
                 parse_mode="MarkdownV2",
@@ -174,11 +178,11 @@ def handle_messages(message: telebot.types.Message, instance: dict) -> None:
                 user_id=user_id,
                 message=user_prompt,
                 engine=SUB_FOLDER_TG,
-                chat=instance.id,
-                system_prompt=instance.prompt,
+                chat=bot.id,
+                system_prompt=bot.prompt,
             )
 
-            bot.edit_message_text(
+            instance.edit_message_text(
                 chat_id=message.chat.id,
                 message_id=gpt_prompt.message_id,
                 text=escape_markdown(result),
@@ -189,8 +193,8 @@ def handle_messages(message: telebot.types.Message, instance: dict) -> None:
 
     elif force_private(message):
         try:
-            bot.send_chat_action(chat_id=message.chat.id, action="typing")
-            gpt_prompt = bot.reply_to(
+            instance.send_chat_action(chat_id=message.chat.id, action="typing")
+            gpt_prompt = instance.reply_to(
                 message=message,
                 text="Думаю над ответом\.\.\.",
                 parse_mode="MarkdownV2",
@@ -200,12 +204,12 @@ def handle_messages(message: telebot.types.Message, instance: dict) -> None:
                 user_id=user_id,
                 message=user_prompt,
                 engine=SUB_FOLDER_TG,
-                chat=instance.id,
-                system_prompt=instance.prompt,
+                chat=bot.id,
+                system_prompt=bot.prompt,
             )
             result = "[Empty Result]" if not result else result
 
-            bot.edit_message_text(
+            instance.edit_message_text(
                 chat_id=message.chat.id,
                 message_id=gpt_prompt.message_id,
                 text=escape_markdown(result),
@@ -222,36 +226,45 @@ COMMANDS_HANDLERS = {
 
 
 def start_bot():
-    # Initialize the last_update_ids dict
-    last_update_ids = {bot_info.id: 0 for bot_info in get_bots()}
+    # Initialize last_update_ids dict
+    last_update_ids = {bot.id: 0 for bot in get_bots(session_maker())}
     while True:
-        bots = get_bots()
-        bots_count = len(bots)
+        with session_maker() as session:
+            bots = get_bots(session)
+            bots_count = len(bots)
 
-        for bot_info in bots:
-            bot_instance = bot_info.instance
+            # check if new bot is added to temp dict or not
+            for bot_info in bots:
+                if bot_info.id not in last_update_ids:
+                    last_update_ids[bot_info.id] = 0
 
-            # Get the last_update_id for this bot
-            last_update_id = last_update_ids[bot_info.id]
-            updates = bot_instance.get_updates(offset=last_update_id + 1)
+            for bot_info in bots:
+                bot_instance = bot_info.instance
+                last_update_id = last_update_ids[bot_info.id]
+                updates = bot_instance.get_updates(offset=last_update_id + 1)
 
-            for update in updates:
-                message = update.message
-                if message is not None and message.content_type == "text":
-                    # Update the last_update_id for this bot
-                    last_update_ids[bot_info.id] = update.update_id
-                    command_handler = COMMANDS_HANDLERS.get(
-                        message.text.strip()
-                    )
-                    if command_handler:
-                        command_handler(message, bot_info)
+                for update in updates:
+                    message = update.message
+                    if message and message.content_type == "text":
+                        last_update_ids[bot_info.id] = update.update_id
+                        command_handler = COMMANDS_HANDLERS.get(
+                            message.text.strip()
+                        )
+                        handler = command_handler or handle_messages
+                        handler(message, bot_info)
                     else:
-                        handle_messages(message, bot_info)
-                else:
-                    # if sent message is not text it will be passed
-                    logger.warning("Non text message received")
-            time.sleep(max(POLLING_INTERVAL / bots_count, 1))
+                        logger.warning("Non-text message received")
+
+                time.sleep(max(POLLING_INTERVAL / bots_count, 1))
 
 
 if __name__ == "__main__":
+    path = os.path.join(BASE_FOLDER, SUB_FOLDER_TG)
+    # Check if the base folder exists
+    if not os.path.exists(BASE_FOLDER):
+        os.makedirs(BASE_FOLDER)
+
+    # Check if the sub folder exists
+    if not os.path.exists(path):
+        os.makedirs(path)
     start_bot()
