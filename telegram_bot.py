@@ -35,26 +35,32 @@ def get_bots(session: Session) -> list[BotInfo]:
     Retrieve Telegram bot instances from the database and set bot commands.
     """
     bots = []
-    accounts = get_active_telegram_bot_accounts(session)
-    for account in accounts:
-        bot_instance = telebot.TeleBot(account.token)
+    try:
+        accounts = get_active_telegram_bot_accounts(session)
+        for account in accounts:
+            bot_instance = telebot.TeleBot(account.token)
 
-        # Set bot commands
-        bot_instance.set_my_commands(
-            [
-                types.BotCommand(command="start", description="Старт бота"),
-                types.BotCommand(
-                    command="reset", description="Сбросить историю чата"
-                ),
-            ]
-        )
+            # Set bot commands
+            bot_instance.set_my_commands(
+                [
+                    types.BotCommand(
+                        command="start", description="Старт бота"
+                    ),
+                    types.BotCommand(
+                        command="reset", description="Сбросить историю чата"
+                    ),
+                ]
+            )
 
-        bot_info = BotInfo(
-            id=account.id,
-            instance=bot_instance,
-            prompt=account.prompt.text,
-        )
-        bots.append(bot_info)
+            bot_info = BotInfo(
+                id=account.id,
+                instance=bot_instance,
+                prompt=account.prompt.text,
+            )
+            bots.append(bot_info)
+    except Exception as e:
+        logger.error(f"Error in get_bots function: {e}")
+
     return bots
 
 
@@ -230,32 +236,38 @@ def start_bot():
     last_update_ids = {bot.id: 0 for bot in get_bots(session_maker())}
     while True:
         with session_maker() as session:
-            bots = get_bots(session)
-            bots_count = len(bots)
+            try:
+                bots = get_bots(session)
+                bots_count = len(bots)
 
-            # check if new bot is added to temp dict or not
-            for bot_info in bots:
-                if bot_info.id not in last_update_ids:
-                    last_update_ids[bot_info.id] = 0
+                # check if new bot is added to temp dict or not
+                for bot_info in bots:
+                    if bot_info.id not in last_update_ids:
+                        last_update_ids[bot_info.id] = 0
 
-            for bot_info in bots:
-                bot_instance = bot_info.instance
-                last_update_id = last_update_ids[bot_info.id]
-                updates = bot_instance.get_updates(offset=last_update_id + 1)
+                for bot_info in bots:
+                    bot_instance = bot_info.instance
+                    last_update_id = last_update_ids[bot_info.id]
+                    updates = bot_instance.get_updates(
+                        offset=last_update_id + 1
+                    )
 
-                for update in updates:
-                    message = update.message
-                    if message and message.content_type == "text":
-                        last_update_ids[bot_info.id] = update.update_id
-                        command_handler = COMMANDS_HANDLERS.get(
-                            message.text.strip()
-                        )
-                        handler = command_handler or handle_messages
-                        handler(message, bot_info)
-                    else:
-                        logger.warning("Non-text message received")
+                    for update in updates:
+                        message = update.message
+                        if message and message.content_type == "text":
+                            last_update_ids[bot_info.id] = update.update_id
+                            command_handler = COMMANDS_HANDLERS.get(
+                                message.text.strip()
+                            )
+                            handler = command_handler or handle_messages
+                            handler(message, bot_info)
+                        else:
+                            logger.warning("Non-text message received")
 
-                time.sleep(max(POLLING_INTERVAL / bots_count, 1))
+                    time.sleep(max(POLLING_INTERVAL / bots_count, 1))
+            except Exception as e:
+                logger.error(f"Error in start_bot function: {e}")
+                time.sleep(5)
 
 
 if __name__ == "__main__":

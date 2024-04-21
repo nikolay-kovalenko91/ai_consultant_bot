@@ -28,7 +28,7 @@ class AvitoAccounts(Base):
     client_id: Mapped[str]
     client_secret: Mapped[str]
     is_active: Mapped[bool]
-    prompt_id = Column(Integer, ForeignKey("prompts.id"))
+    prompt_id = Column(Integer, ForeignKey("prompts.id"), nullable=False)
 
     prompt = relationship("Prompt", back_populates="avito_accounts")
     faqs: Mapped[list["Faq"]] = relationship(
@@ -41,7 +41,8 @@ class TelegramAccount(Base):
 
     id = Column(Integer, primary_key=True)
     token = Column(String)
-    prompt_id = Column(Integer, ForeignKey("prompts.id"))
+    name = Column(String, nullable=True)
+    prompt_id = Column(Integer, ForeignKey("prompts.id"), nullable=False)
     is_active: Mapped[bool]
 
     prompt = relationship("Prompt", back_populates="telegram_accounts")
@@ -51,6 +52,7 @@ class Prompt(Base):
     __tablename__ = "prompts"
 
     id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=True)
     text = Column(String)
 
     telegram_accounts = relationship(
