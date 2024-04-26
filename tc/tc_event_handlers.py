@@ -99,25 +99,25 @@ def update_new_messages_handle(client: ClientModel, event):
                     if any(keyword in text.lower() for keyword in keywords):
                         prompt = get_prompt_data(session, account.group_message_prompt_id)
                         if prompt:
-                            answer = prompt
-                            # answer = generate_chatgpt_answer(
-                            #     user_id=sender_user_id,
-                            #     message=text,
-                            #     engine=TCEngine.GROUP_MESSAGE,
-                            #     system_prompt=prompt
-                            # )
+                            # answer = prompt
+                            answer = generate_chatgpt_answer(
+                                user_id=sender_user_id,
+                                message=text,
+                                engine=TCEngine.GROUP_MESSAGE,
+                                system_prompt=prompt
+                            )
 
             # private message
             else:
                 prompt = get_prompt_data(session, account.private_message_prompt_id)
                 if prompt:
-                    answer = prompt
-                    # answer = generate_chatgpt_answer(
-                    #     user_id=sender_user_id,
-                    #     message=text,
-                    #     engine=TCEngine.PRIVATE_MESSAGE,
-                    #     system_prompt=prompt
-                    # )
+                    # answer = prompt
+                    answer = generate_chatgpt_answer(
+                        user_id=sender_user_id,
+                        message=text,
+                        engine=TCEngine.PRIVATE_MESSAGE,
+                        system_prompt=prompt
+                    )
 
             if answer:
                 telegram_json.send_text_message(
