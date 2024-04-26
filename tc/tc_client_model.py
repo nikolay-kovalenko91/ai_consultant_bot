@@ -3,7 +3,6 @@ from dataclasses import dataclass
 
 @dataclass
 class ClientModel:
-
     client_id: int
 
     phone: str

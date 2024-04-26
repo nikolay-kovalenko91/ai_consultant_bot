@@ -71,12 +71,14 @@ class TelegramClientAccount(Base):
     private_message_prompt = relationship(
         "Prompt",
         foreign_keys=[private_message_prompt_id],
-        back_populates="telegram_client_accounts_private")
+        back_populates="telegram_client_accounts_private",
+    )
 
     group_message_prompt = relationship(
         "Prompt",
         foreign_keys=[group_message_prompt_id],
-        back_populates="telegram_client_accounts_group")
+        back_populates="telegram_client_accounts_group",
+    )
 
     keywords: Mapped[Optional[str]]
 
@@ -91,13 +93,13 @@ class Prompt(Base):
     telegram_client_accounts_private = relationship(
         "TelegramClientAccount",
         foreign_keys=[TelegramClientAccount.private_message_prompt_id],
-        back_populates="private_message_prompt"
+        back_populates="private_message_prompt",
     )
 
     telegram_client_accounts_group = relationship(
         "TelegramClientAccount",
         foreign_keys=[TelegramClientAccount.group_message_prompt_id],
-        back_populates="group_message_prompt"
+        back_populates="group_message_prompt",
     )
 
 
