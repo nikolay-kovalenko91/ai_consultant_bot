@@ -26,7 +26,7 @@ class TypeMessage:
         PASSWORD_HASH_INVALID = "PASSWORD_HASH_INVALID"
         PHONE_CODE_EXPIRED = "PHONE_CODE_EXPIRED"
 
-        LOCK_FILE = "Can\'t lock file"
+        LOCK_FILE = "Can't lock file"
 
 
 class State:

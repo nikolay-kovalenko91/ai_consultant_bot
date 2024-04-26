@@ -20,12 +20,14 @@ def authorization_event_handle(client: ClientModel, event):
             client_id,
             db_path=f"{TC_SESSIONS_DIRECTORY}/{phone}",
             api_id=client.api_id,
-            api_hash=client.api_hash)
+            api_hash=client.api_hash,
+        )
 
     if auth_state["@type"] == "authorizationStateWaitEncryptionKey":
         telegram_json.td_json_client_send(
             client_id,
-            {"@type": "checkDatabaseEncryptionKey", "encryption_key": ''})
+            {"@type": "checkDatabaseEncryptionKey", "encryption_key": ''},
+        )
 
     if auth_state["@type"] == "authorizationStateWaitPhoneNumber":
         telegram_json.send_phone(client_id, phone)
@@ -65,7 +67,7 @@ def error_event_handle(client: ClientModel, event):
     elif event.get("message") == TypeMessage.Error.PHONE_CODE_EXPIRED:
         return {
             "result": TypeMessage.Error.PHONE_CODE_EXPIRED,
-            "client": client
+            "client": client,
         }
 
     elif TypeMessage.Error.LOCK_FILE in event.get("message"):
@@ -79,7 +81,7 @@ def update_new_messages_handle(client: ClientModel, event):
     caption = event.get("message").get("content").get("caption")
     text = caption if not text else text
 
-    is_channel_post = event.get('message').get("is_channel_post")
+    is_channel_post = event.get("message").get("is_channel_post")
 
     sender_user_id = event.get("message").get("sender_id").get("user_id")
 
@@ -90,7 +92,6 @@ def update_new_messages_handle(client: ClientModel, event):
         and not is_channel_post
         and sender_user_id != client.telegram_user_id
     ):
-
         text = text.get("text")
 
         with session_maker() as session:

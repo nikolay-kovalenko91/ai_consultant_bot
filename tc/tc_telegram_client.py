@@ -7,7 +7,8 @@ from database import TelegramClientAccount
 from tc.tc_constants import TC_SESSIONS_DIRECTORY, EventTypes
 from tc.tc_event_handlers import (
     authorization_event_handle,
-    error_event_handle, update_new_messages_handle,
+    error_event_handle,
+    update_new_messages_handle,
     user_event_handle,
 )
 from tc.tc_listener import listen_client
@@ -39,7 +40,6 @@ class TelegramClient:
         telegram_json.get_authorization_state(client.client_id)
 
         if only_registration:
-
             session_path = (
                 f"{TC_SESSIONS_DIRECTORY}/{self.telegram_account.phone}"
             )

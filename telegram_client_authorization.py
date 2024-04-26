@@ -6,13 +6,12 @@ from tc.tc_telegram_client import TelegramClient
 logging.basicConfig(
     level=logging.INFO,
     format="[{asctime}] #{levelname:8} {filename}:"
-           "{lineno} - {name} - {message}",
-    style="{"
+    "{lineno} - {name} - {message}",
+    style="{",
 )
 
 if __name__ == "__main__":
     while True:
-
         phone = input("Введите номер телефона: ")
         api_id = input("Введите api_id: ")
         api_hash = input("Введите api_hash: ")

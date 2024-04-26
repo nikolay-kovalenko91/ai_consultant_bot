@@ -84,7 +84,7 @@ class TelegramJSON:
             },
         )
         cls.td_json_client_send(
-            client_id, { "@type": "getAuthorizationState", "@extra": 1.01234}
+            client_id, {"@type": "getAuthorizationState", "@extra": 1.01234}
         )
 
     @classmethod
@@ -120,18 +120,18 @@ class TelegramJSON:
             "use_secret_chats": True,
             "api_id": api_id,
             "api_hash": api_hash,
-            "system_language_code": 'en',
-            "device_model": 'Desktop',
-            "application_version": '1.0',
+            "system_language_code": "en",
+            "device_model": "Desktop",
+            "application_version": "1.0",
             "enable_storage_optimizer": False,
-            "ignore_file_names": False
+            "ignore_file_names": False,
         }
         cls.td_json_client_send(
             client_id,
             {
                 "@type": "setTdlibParameters",
                 "parameters": parameters,
-                **parameters
+                **parameters,
             },
         )
 
@@ -159,7 +159,7 @@ class TelegramJSON:
     def send_password(cls, client_id, password):
         cls.td_json_client_send(
             client_id,
-            {"@type": "checkAuthenticationPassword", 'password': password},
+            {"@type": "checkAuthenticationPassword", "password": password},
         )
 
     @classmethod
@@ -174,7 +174,7 @@ class TelegramJSON:
 
     @classmethod
     def send_text_message(
-            cls, client_id, chat_id, text, reply_to_message_id=0, extra=None
+        cls, client_id, chat_id, text, reply_to_message_id=0, extra=None
     ):
         text_format = {"@type": "formattedText", "text": text, "entities": []}
 
@@ -182,7 +182,7 @@ class TelegramJSON:
             "@type": "inputMessageText",
             "text": text_format,
             "disable_web_page_preview": False,
-            "clear_draft": True
+            "clear_draft": True,
         }
 
         reply_to = None
@@ -201,6 +201,6 @@ class TelegramJSON:
                 "reply_to_message_id": reply_to_message_id,
                 "reply_to": reply_to,
                 "input_message_content": input_message_text,
-                "@extra": extra
+                "@extra": extra,
             },
         )

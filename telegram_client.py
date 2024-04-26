@@ -9,15 +9,15 @@ from tc.tc_constants import (
     TC_SESSIONS_DIRECTORY,
     POLLING_INTERVAL,
     DATABASE_DIRECTORY,
-    TCEngine
+    TCEngine,
 )
 from tc.tc_telegram_client import TelegramClient
 
 logging.basicConfig(
     level=logging.INFO,
     format="[{asctime}] #{levelname:8} {filename}:"
-           "{lineno} - {name} - {message}",
-    style="{"
+    "{lineno} - {name} - {message}",
+    style="{",
 )
 
 
