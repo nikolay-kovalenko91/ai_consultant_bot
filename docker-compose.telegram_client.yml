@@ -1,0 +1,11 @@
+services:
+  telegram_client:
+
+    build: 
+      dockerfile: TCDockerfile
+
+    volumes:
+      - ./database:/src/database
+      - ./telegram_client_sessions:/src/telegram_client_sessions
+
+    command: ["python", "telegram_client.py"]
