@@ -1,7 +1,6 @@
 import json
 import os
 import platform
-import time
 from ctypes import c_char_p, CDLL, c_void_p, c_double
 from typing import List
 
@@ -80,9 +79,14 @@ class TelegramJSON:
     @classmethod
     def get_authorization_state(cls, client_id):
         cls.td_json_client_execute(client_id, {
-            '@type': 'setLogVerbosityLevel', 'new_verbosity_level': 1, '@extra': 1.01234
+            '@type': 'setLogVerbosityLevel',
+            'new_verbosity_level': 1,
+            '@extra': 1.01234
         })
-        cls.td_json_client_send(client_id, {'@type': 'getAuthorizationState', '@extra': 1.01234})
+        cls.td_json_client_send(client_id, {
+            '@type': 'getAuthorizationState',
+            '@extra': 1.01234
+        })
 
     @classmethod
     def client_destroy(cls, client_id):
@@ -165,7 +169,14 @@ class TelegramJSON:
         })
 
     @classmethod
-    def send_text_message(cls, client_id, chat_id, text, reply_to_message_id=0, extra=None):
+    def send_text_message(
+            cls,
+            client_id,
+            chat_id,
+            text,
+            reply_to_message_id=0,
+            extra=None
+    ):
 
         text_format = {
             '@type': 'formattedText',

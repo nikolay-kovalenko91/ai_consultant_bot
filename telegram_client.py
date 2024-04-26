@@ -5,7 +5,8 @@ import time
 from constants import BASE_FOLDER
 from database import session_maker
 from tc.tc_repository import get_telegram_accounts
-from tc.tc_constants import TC_SESSIONS_DIRECTORY, POLLING_INTERVAL, DATABASE_DIRECTORY, TCEngine
+from tc.tc_constants import TC_SESSIONS_DIRECTORY, POLLING_INTERVAL, \
+    DATABASE_DIRECTORY, TCEngine
 from tc.tc_telegram_client import TelegramClient
 
 logging.basicConfig(
@@ -38,7 +39,9 @@ if __name__ == '__main__':
 
             for account in telegram_accounts:
                 if not any(phone == account.phone for phone in accounts):
-                    if os.path.exists(f"{TC_SESSIONS_DIRECTORY}/{account.phone}"):
+                    if os.path.exists(
+                            f"{TC_SESSIONS_DIRECTORY}/{account.phone}"
+                    ):
                         accounts.append(account.phone)
                         telegram_client = TelegramClient(account)
                         telegram_client.init()

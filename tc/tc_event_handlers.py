@@ -63,7 +63,10 @@ def error_event_handle(client: ClientModel, event):
         password = input("Неверный пароль. Введите пароль повторно: ")
         telegram_json.send_password(client_id, password)
     elif event.get('message') == TypeMessage.Error.PHONE_CODE_EXPIRED:
-        return {'result': TypeMessage.Error.PHONE_CODE_EXPIRED, 'client': client}
+        return {
+            'result': TypeMessage.Error.PHONE_CODE_EXPIRED,
+            'client': client
+        }
 
     elif TypeMessage.Error.LOCK_FILE in event.get('message'):
         return TypeMessage.Error.LOCK_FILE
@@ -82,7 +85,9 @@ def update_new_messages_handle(client: ClientModel, event):
 
     logging.info(f"{client.phone}: {chat_id}_{sender_user_id} -> {text}")
 
-    if text and not is_channel_post and sender_user_id != client.telegram_user_id:
+    if text \
+            and not is_channel_post \
+            and sender_user_id != client.telegram_user_id:
 
         text = text.get('text')
 
@@ -95,9 +100,15 @@ def update_new_messages_handle(client: ClientModel, event):
             if chat_id != sender_user_id:
 
                 if account.keywords:
-                    keywords = [word.strip().lower() for word in account.keywords.split(",") if word.strip()]
+                    keywords = [
+                        word.strip().lower()
+                        for word in account.keywords.split(",")
+                        if word.strip()]
                     if any(keyword in text.lower() for keyword in keywords):
-                        prompt = get_prompt_data(session, account.group_message_prompt_id)
+                        prompt = get_prompt_data(
+                            session,
+                            account.group_message_prompt_id
+                        )
                         if prompt:
                             # answer = prompt
                             answer = generate_chatgpt_answer(
@@ -109,7 +120,10 @@ def update_new_messages_handle(client: ClientModel, event):
 
             # private message
             else:
-                prompt = get_prompt_data(session, account.private_message_prompt_id)
+                prompt = get_prompt_data(
+                    session,
+                    account.private_message_prompt_id
+                )
                 if prompt:
                     # answer = prompt
                     answer = generate_chatgpt_answer(
@@ -124,5 +138,7 @@ def update_new_messages_handle(client: ClientModel, event):
                     client_id=client.client_id,
                     chat_id=chat_id,
                     text=answer,
-                    reply_to_message_id=message_id if chat_id != sender_user_id else 0
+                    reply_to_message_id=message_id
+                    if chat_id != sender_user_id
+                    else 0
                 )

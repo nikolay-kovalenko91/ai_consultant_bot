@@ -25,6 +25,3 @@ if __name__ == '__main__':
 
         telegram_client = TelegramClient(account)
         telegram_client.init(only_registration=True)
-
-
-

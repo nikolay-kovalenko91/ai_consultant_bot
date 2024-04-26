@@ -11,7 +11,9 @@ def get_telegram_accounts(session: Session) -> Sequence[TelegramClientAccount]:
 
 
 def add_telegram_account(session: Session, client: ClientModel):
-    if not session.query(TelegramClientAccount).filter_by(phone=client.phone).first():
+    if not session.query(TelegramClientAccount)\
+            .filter_by(phone=client.phone)\
+            .first():
         account = TelegramClientAccount(
             telegram_user_id=client.telegram_user_id,
             phone=client.phone,
@@ -35,8 +37,11 @@ def get_prompt_data(session: Session, prompt_id: int):
 
 
 def get_account_data(session: Session, telegram_user_id: int):
-    account: TelegramClientAccount = session.query(TelegramClientAccount).filter(
-        TelegramClientAccount.telegram_user_id == telegram_user_id
-    ).first()
+    account: TelegramClientAccount = session\
+        .query(TelegramClientAccount)\
+        .filter(
+            TelegramClientAccount.telegram_user_id == telegram_user_id
+        )\
+        .first()
 
     return account
