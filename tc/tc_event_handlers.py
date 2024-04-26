@@ -26,7 +26,7 @@ def authorization_event_handle(client: ClientModel, event):
     if auth_state["@type"] == "authorizationStateWaitEncryptionKey":
         telegram_json.td_json_client_send(
             client_id,
-            {"@type": "checkDatabaseEncryptionKey", "encryption_key": ''},
+            {"@type": "checkDatabaseEncryptionKey", "encryption_key": ""},
         )
 
     if auth_state["@type"] == "authorizationStateWaitPhoneNumber":
