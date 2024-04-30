@@ -3,6 +3,7 @@ import logging
 from database import TelegramClientAccount
 from tc.tc_telegram_client import TelegramClient
 
+
 logging.basicConfig(
     level=logging.INFO,
     format="[{asctime}] #{levelname:8} {filename}:"
@@ -22,4 +23,8 @@ if __name__ == "__main__":
         account.api_hash = api_hash
 
         telegram_client = TelegramClient(account)
-        telegram_client.init(only_registration=True)
+        listener = telegram_client.init(only_registration=True)
+
+        while True:
+            if next(listener):
+                break

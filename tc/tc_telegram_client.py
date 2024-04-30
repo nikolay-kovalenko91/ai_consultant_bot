@@ -1,7 +1,6 @@
 import os
 import shutil
 from dataclasses import dataclass
-from threading import Thread
 
 from database import TelegramClientAccount
 from tc.tc_constants import TC_SESSIONS_DIRECTORY, EventTypes
@@ -47,9 +46,8 @@ class TelegramClient:
                 os.makedirs(session_path)
                 shutil.copy("tc/libs/td.binlog", f"{session_path}/td.binlog")
 
-            listen_client(client, only_registration)
+            return listen_client(client, only_registration)
 
         else:
-            params = {"client": client, "only_registration": only_registration}
-            thread = Thread(target=listen_client, kwargs=params)
-            thread.start()
+
+            return listen_client(client, only_registration)

@@ -26,11 +26,16 @@ def listen_client(client: ClientModel, only_registration: bool = False):
                     time.sleep(DELAY)
                     with session_maker() as session:
                         add_telegram_account(session, result.get("client"))
-                    break
+
+                    yield True
+
                 elif (
                     result.get("result")
                     == TypeMessage.Error.PHONE_CODE_EXPIRED
                 ):
                     telegram_json.client_destroy(client.client_id)
                     time.sleep(DELAY)
-                    break
+
+                    yield True
+
+        yield
