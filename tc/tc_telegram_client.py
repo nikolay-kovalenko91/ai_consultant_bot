@@ -49,5 +49,4 @@ class TelegramClient:
             return listen_client(client, only_registration)
 
         else:
-
             return listen_client(client, only_registration)
