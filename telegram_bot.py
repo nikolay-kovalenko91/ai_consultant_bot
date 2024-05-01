@@ -16,7 +16,6 @@ import time
 from repository import get_active_telegram_bot_accounts
 from dataclasses import dataclass
 
-
 logging.basicConfig(format="%(asctime)s - %(message)s")
 logger = logging.getLogger(__name__)
 logger.setLevel(level=LOGGING_LEVEL)
@@ -30,15 +29,25 @@ class BotInfo:
     offset: int = 0
 
 
+bot_instances = {}
+
+
 def get_bots(session: Session) -> list[BotInfo]:
     """
     Retrieve Telegram bot instances from the database and set bot commands.
     """
+    global bot_instances
     bots = []
+
     try:
         accounts = get_active_telegram_bot_accounts(session)
         for account in accounts:
-            bot_instance = telebot.TeleBot(account.token)
+            bot_id = account.id
+            if bot_id in bot_instances:
+                bot_instance = bot_instances[bot_id]
+            else:
+                bot_instance = telebot.TeleBot(account.token)
+                bot_instances[bot_id] = bot_instance
 
             # Set bot commands
             bot_instance.set_my_commands(
@@ -53,14 +62,13 @@ def get_bots(session: Session) -> list[BotInfo]:
             )
 
             bot_info = BotInfo(
-                id=account.id,
+                id=bot_id,
                 instance=bot_instance,
                 prompt=account.prompt.text,
             )
             bots.append(bot_info)
     except Exception as e:
         logger.error(f"Error in get_bots function: {e}")
-
     return bots
 
 
@@ -232,15 +240,14 @@ COMMANDS_HANDLERS = {
 
 
 def start_bot():
-    # Initialize last_update_ids dict
-    last_update_ids = {bot.id: 0 for bot in get_bots(session_maker())}
-    while True:
-        with session_maker() as session:
+    with session_maker() as session:
+        last_update_ids = {bot.id: 0 for bot in get_bots(session)}
+
+        while True:
             try:
                 bots = get_bots(session)
                 bots_count = len(bots)
 
-                # check if new bot is added to temp dict or not
                 for bot_info in bots:
                     if bot_info.id not in last_update_ids:
                         last_update_ids[bot_info.id] = 0
@@ -265,6 +272,7 @@ def start_bot():
                             logger.warning("Non-text message received")
 
                     time.sleep(max(POLLING_INTERVAL / bots_count, 1))
+
             except Exception as e:
                 logger.error(f"Error in start_bot function: {e}")
                 time.sleep(5)
