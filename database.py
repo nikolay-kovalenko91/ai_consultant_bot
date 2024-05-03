@@ -1,6 +1,3 @@
-from typing import Optional
-
-from sqlalchemy import create_engine, ForeignKey
 from sqlalchemy.orm import (
     Mapped,
     sessionmaker,
@@ -9,18 +6,16 @@ from sqlalchemy.orm import (
     relationship,
     scoped_session,
 )
-
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
+from typing import Optional
 from constants import DATABASE_DNS
 
 engine = create_engine(DATABASE_DNS)
-
 session_maker = sessionmaker(
     engine,
     expire_on_commit=False,
 )
-
 current_session = scoped_session(session_maker)
-
 Base = declarative_base()
 
 
@@ -33,11 +28,37 @@ class AvitoAccounts(Base):
     client_id: Mapped[str]
     client_secret: Mapped[str]
     is_active: Mapped[bool]
-    prompt: Mapped[str]
+    prompt_id = Column(Integer, ForeignKey("prompts.id"), nullable=False)
 
+    prompt = relationship("Prompt", back_populates="avito_accounts")
     faqs: Mapped[list["Faq"]] = relationship(
         back_populates="account",
     )
+
+
+class TelegramAccount(Base):
+    __tablename__ = "telegram_accounts"
+
+    id = Column(Integer, primary_key=True)
+    token = Column(String)
+    name = Column(String, nullable=True)
+    prompt_id = Column(Integer, ForeignKey("prompts.id"), nullable=False)
+    is_active: Mapped[bool]
+
+    prompt = relationship("Prompt", back_populates="telegram_accounts")
+
+
+class Prompt(Base):
+    __tablename__ = "prompts"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=True)
+    text = Column(String)
+
+    telegram_accounts = relationship(
+        "TelegramAccount", back_populates="prompt"
+    )
+    avito_accounts = relationship("AvitoAccounts", back_populates="prompt")
 
 
 class Faq(Base):

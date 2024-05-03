@@ -4,9 +4,9 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from io import StringIO
 from typing import Sequence
-
 from sqlalchemy import Row
-
+from database import AvitoAccounts
+from repository import get_avito_accounts_faqs
 from constants import (
     SMTP_EMAIL,
     SMTP_SERVER,
@@ -16,8 +16,6 @@ from constants import (
     CLOSING_MESSAGE_SUBJECT,
     CLOSING_MESSAGE_BODY,
 )
-from database import AvitoAccounts
-from repository import get_avito_accounts_faqs
 
 
 def send_email(to_address: str, subject: str, body: str) -> None:
@@ -73,4 +71,4 @@ def generate_gpt_prompt(session, account: AvitoAccounts) -> str:
             f"{accounts_faqs}"
         )
 
-    return account.prompt
+    return account.prompt.text

@@ -2,14 +2,26 @@ from typing import Sequence
 
 from sqlalchemy import select, Row
 from sqlalchemy.orm import Session
-
-from database import AvitoAccounts, Faq
+from sqlalchemy.orm import joinedload
+from database import AvitoAccounts, Faq, TelegramAccount
 
 
 def get_active_avito_accounts(session: Session) -> Sequence[AvitoAccounts]:
-    statement = select(AvitoAccounts).filter_by(is_active=True)
+    return (
+        session.query(AvitoAccounts)
+        .options(joinedload(AvitoAccounts.prompt))
+        .filter_by(is_active=True)
+    )
 
-    return session.scalars(statement).all()
+
+def get_active_telegram_bot_accounts(
+    session: Session,
+) -> Sequence[TelegramAccount]:
+    return (
+        session.query(TelegramAccount)
+        .options(joinedload(TelegramAccount.prompt))
+        .filter_by(is_active=True)
+    )
 
 
 def get_avito_accounts_faqs(
