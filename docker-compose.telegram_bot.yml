@@ -1,7 +1,0 @@
-services:
-  telegram_bot:
-    env_file:
-      - .env
-    build:
-      dockerfile: Dockerfile
-    command: ["python", "telegram_bot.py"]

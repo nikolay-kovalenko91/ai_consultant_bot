@@ -1,37 +1,42 @@
+<h2>ChatGPT Bots for Telegram and Avito </h2>
 
-<h2>ChatGPT Bot for Telegram and Avito  </h2>
+This repository implements two bots for Telegram and Avito using ChatGPT. The Telegram bot supports commands such as `/start` and `/reset` to interact with users.
 
-This repository implements two bots for Telegram and Avito using ChatGPT. Users can run the `telegram_bot.py` for Telegram and `avito_bot.py` for Avito. The Telegram bot supports commands such as viewing chat history and resetting it.
-
-
-<br>
-
-# ▋Telegram Bot Commands
-+ **/history** to get history file in json format
-+ **/reset** to reset the chat history
 
 <br>
 
-# ▋Install Requirements
-Before running the bots, install the required packages. Navigate to the bot directory, create a virtual environment if needed, and install dependencies:
-1. Navigate to bot directory
-2. Create virtual environment if needed
-3. Install requirements using pip
+## Telegram Bot Commands
+`/start` - Starts new conversation with users
+`/reset` - Cleans user conversation from history
+
+<br>
+
+## Running the Bots Locally with Python Scripts
+
+Before running the bots, ensure you have the required packages installed. Follow these steps:
+
+## Install Requirements
+
+- Navigate to the bot directory.
+- (Optional) Create a virtual environment if needed.
+- Install the required dependencies using pip:
+
 ```bash
 pip install -r requirements.txt
 ```
 
 <br>
 
-# ▋Setup envs
+## Environment Setup
+Ensure you have the following environment variables set up:
+
+
 ```
-BOT_TOKEN: Telegram API key
 OPENAI_API_KEY: ChatGPT API key
-SYSTEM_PROMPT: ChatGPT system prompt
 
 DATABASE_DNS: Database connection string. You can omit it and then it will be 
-selected by default. If the castrom path is still specified, 
-then you need to redefine the mount folders in docker-compose.avito_bot.yml 
+selected by default. If the custom path is still specified, 
+then you need to redefine the mount folders in docker-compose.yml 
 
 SMTP_SERVER: SMTP server address
 SMTP_SERVER_PORT: SMTP server port
@@ -42,11 +47,13 @@ RECEIVER_EMAIL_ADDRESS: Email address of reciever
 ```
 <br>
 
-# ▋Running the Bots
+## Running the Bots
+
+If you run the bot from the command line, ensure the database directory exists
 
 ## Telegram Bot
 
-To launch the Telegram bot, use:
+To launch the Telegram bot, run:
 
 ```bash
 python telegram_bot.py
@@ -54,15 +61,10 @@ python telegram_bot.py
 
 ## Avito Bot
 
-if you run the bot from the command line, you need 
-to make sure that the directory in which the 
-database should be located exists.
-To launch the Avito bot, use:
+To launch the Telegram bot, run:
 
 ```bash
-
 python avito_bot.py
-
 ```
 
 To see logs without sending actual API calls, run the Avito bot in dry mode:
@@ -71,22 +73,12 @@ To see logs without sending actual API calls, run the Avito bot in dry mode:
 python avito_bot.py --dry
 ```
 
-# ▋Running the Bots with docker 
+## Running the Bots with Docker
 
-## Telegram Bot
-
-To launch the Telegram bot with docker, use:
+To launch the Telegram and Avito bots together with docker, use:
 
 ```bash
-docker compose -f docker-compose.telegram_bot.yml up
-```
-
-## Avito Bot
-
-To launch the Avito bot with docker, use:
-
-```bash
-docker compose -f docker-compose.avito_bot.yml up
+docker compose -f docker-compose up --build
 ```
 
 Nocodb will be available on localhost:8080. 
