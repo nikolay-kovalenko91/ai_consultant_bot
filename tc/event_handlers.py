@@ -97,8 +97,10 @@ def update_new_messages_handle(
     sender_user_id = event.get("message").get("sender_id").get("user_id")
 
     logging.debug(
-        (f"Got text message for {client.phone}:"
-         f" {chat_id}_{sender_user_id}; {text=}")
+        (
+            f"Got text message for {client.phone}:"
+            f" {chat_id}_{sender_user_id}; {text=}"
+        )
     )
 
     if not (
@@ -124,7 +126,7 @@ def update_new_messages_handle(
             answer = create_private_message(account, sender_user_id, text)
 
         if answer:
-            reply_to_message_id = (message_id if is_group_chat else 0)  # 0 -
+            reply_to_message_id = message_id if is_group_chat else 0  # 0 -
             # without reply mark
 
             telegram_json.send_text_message(

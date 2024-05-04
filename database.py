@@ -116,27 +116,4 @@ class Faq(Base):
     account: Mapped["AvitoAccounts"] = relationship(back_populates="faqs")
 
 
-
-
-
-# class Prompt(Base):
-#     __tablename__ = "prompts"
-#
-#     id = Column(Integer, primary_key=True)
-#     name = Column(String, nullable=True)
-#     text = Column(String)
-
-    # telegram_client_accounts_private = relationship(
-    #     "TelegramClientAccount",
-    #     foreign_keys=[TelegramClientAccount.private_message_prompt_id],
-    #     back_populates="private_message_prompt",
-    # )
-    #
-    # telegram_client_accounts_group = relationship(
-    #     "TelegramClientAccount",
-    #     foreign_keys=[TelegramClientAccount.group_message_prompt_id],
-    #     back_populates="group_message_prompt",
-    # )
-
-
 Base.metadata.create_all(engine)

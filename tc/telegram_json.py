@@ -61,9 +61,7 @@ class TelegramJSON:
 
     @classmethod
     def call_event_handle(
-        cls, client: ClientModel,
-        event_type: str,
-        event: Dict[str, Any]
+        cls, client: ClientModel, event_type: str, event: Dict[str, Any]
     ) -> Optional[dict]:
         handle = cls.event_handlers.get(event_type)
         return handle(client, event) if handle else None
@@ -98,7 +96,7 @@ class TelegramJSON:
 
     @classmethod
     def td_json_client_execute(
-            cls, client_id: int, query: Dict[str, Any]
+        cls, client_id: int, query: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
         query = json.dumps(query).encode("utf-8")
         result = cls._td_json_client_execute(client_id, query)
@@ -108,7 +106,7 @@ class TelegramJSON:
 
     @classmethod
     def td_json_client_send(
-            cls, client_id: int, query: Dict[str, Any]
+        cls, client_id: int, query: Dict[str, Any]
     ) -> None:
         query = json.dumps(query).encode("utf-8")
         cls._td_json_client_send(client_id, query)
@@ -122,7 +120,7 @@ class TelegramJSON:
 
     @classmethod
     def send_parameters(
-            cls, client_id: int, db_path: str, api_id: int, api_hash: str
+        cls, client_id: int, db_path: str, api_id: int, api_hash: str
     ) -> None:
         parameters = {
             "database_directory": db_path,
@@ -190,7 +188,7 @@ class TelegramJSON:
         chat_id: int,
         text: str,
         reply_to_message_id: int = 0,
-        extra: Union[int, str, dict, None] = None
+        extra: Union[int, str, dict, None] = None,
     ) -> None:
         text_format = {"@type": "formattedText", "text": text, "entities": []}
 

@@ -6,7 +6,8 @@ from threading import Thread
 from constants import (
     BASE_FOLDER,
     POLLING_INTERVAL,
-    TC_SESSIONS_DIRECTORY, TCEngine,
+    TC_SESSIONS_DIRECTORY,
+    TCEngine,
 )
 from database import session_maker
 from tc.repository import get_telegram_accounts
