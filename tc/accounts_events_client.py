@@ -1,7 +1,7 @@
 from typing import Generator
 
 from database import session_maker
-from tc.client_model import ClientModel, State, TypeMessage
+from tc.dataclasses import ClientModel, State, TypeMessage
 from tc.repository import add_telegram_account
 from tc.telegram_json import TelegramJSON
 

@@ -1,8 +1,13 @@
+from typing import Optional
+
 from constants import TCEngine
+from database import TelegramClientAccount
 from message_handler import generate_chatgpt_answer
 
 
-def create_group_message(account, sender_user_id, input_text):
+def create_group_message(
+        account: TelegramClientAccount, sender_user_id: str, input_text: str
+) -> Optional[str]:
     if account.keywords:
         keywords = [
             word.strip().lower()
@@ -24,7 +29,9 @@ def create_group_message(account, sender_user_id, input_text):
             return answer
 
 
-def create_private_message(account, sender_user_id, input_text):
+def create_private_message(
+        account: TelegramClientAccount, sender_user_id: str, input_text: str
+) -> Optional[str]:
     prompt = account.private_message_prompt
     if prompt:
         answer = generate_chatgpt_answer(

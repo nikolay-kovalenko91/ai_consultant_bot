@@ -4,7 +4,7 @@ import platform
 from ctypes import c_char_p, CDLL, c_void_p, c_double
 from typing import List, Optional, Callable, Dict, Any, Union
 
-from tc.client_model import ClientModel
+from tc.dataclasses import ClientModel
 
 
 class TelegramJSON:

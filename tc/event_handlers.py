@@ -5,7 +5,7 @@ from constants import TC_SESSIONS_DIRECTORY
 from database import session_maker
 from tc.messages import create_group_message, create_private_message
 from tc.repository import get_account_data
-from tc.client_model import ClientModel, State, TypeMessage
+from tc.dataclasses import ClientModel, State, TypeMessage
 from tc.telegram_json import TelegramJSON
 
 telegram_json = TelegramJSON()

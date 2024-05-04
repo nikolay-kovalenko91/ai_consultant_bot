@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session, joinedload
 from typing import Sequence
 
 from database import TelegramClientAccount
-from tc.client_model import ClientModel
+from tc.dataclasses import ClientModel
 
 
 def get_telegram_accounts(session: Session) -> Sequence[TelegramClientAccount]:
