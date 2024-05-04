@@ -1,17 +1,27 @@
 import os
 import shutil
 from dataclasses import dataclass
+from typing import Generator
 
+from constants import TC_SESSIONS_DIRECTORY
 from database import TelegramClientAccount
-from tc.tc_constants import TC_SESSIONS_DIRECTORY, EventTypes
-from tc.tc_event_handlers import (
+from tc.event_handlers import (
     authorization_event_handle,
     error_event_handle,
     update_new_messages_handle,
     user_event_handle,
 )
-from tc.tc_listener import listen_client
-from tc.tc_telegram_json import TelegramJSON
+from tc.accounts_events_client import accounts_events_client
+from tc.telegram_json import TelegramJSON
+
+
+class EventTypes:
+    ERROR = "error"
+    USER = "user"
+    UPDATE_AUTHORIZATION_STATE = "updateAuthorizationState"
+    UPDATE_NEW_MESSAGE = "updateNewMessage"
+    MESSAGE = "message"
+
 
 telegram_json = TelegramJSON()
 telegram_json.add_event_handler(EventTypes.ERROR, error_event_handle)
@@ -28,7 +38,7 @@ telegram_json.add_event_handler(
 class TelegramClient:
     telegram_account: TelegramClientAccount
 
-    def init(self, only_registration=False):
+    def init(self, only_registration: bool = False) -> Generator:
         client = telegram_json.client_create(
             self.telegram_account.phone,
             self.telegram_account.api_id,
@@ -46,7 +56,4 @@ class TelegramClient:
                 os.makedirs(session_path)
                 shutil.copy("tc/libs/td.binlog", f"{session_path}/td.binlog")
 
-            return listen_client(client, only_registration)
-
-        else:
-            return listen_client(client, only_registration)
+        return accounts_events_client(client, only_registration)

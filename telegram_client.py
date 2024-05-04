@@ -3,16 +3,14 @@ import os
 import time
 from threading import Thread
 
-from constants import BASE_FOLDER
-from database import session_maker
-from tc.tc_repository import get_telegram_accounts
-from tc.tc_constants import (
-    TC_SESSIONS_DIRECTORY,
+from constants import (
+    BASE_FOLDER,
     POLLING_INTERVAL,
-    DATABASE_DIRECTORY,
-    TCEngine,
+    TC_SESSIONS_DIRECTORY, TCEngine,
 )
-from tc.tc_telegram_client import TelegramClient
+from database import session_maker
+from tc.repository import get_telegram_accounts
+from tc.telegram_client import TelegramClient
 
 logging.basicConfig(
     level=logging.INFO,
@@ -32,9 +30,6 @@ def run_account_listeners():
 
 
 if __name__ == "__main__":
-    if not os.path.exists(DATABASE_DIRECTORY):
-        os.makedirs(DATABASE_DIRECTORY)
-
     if not os.path.exists(TC_SESSIONS_DIRECTORY):
         os.makedirs(TC_SESSIONS_DIRECTORY)
 

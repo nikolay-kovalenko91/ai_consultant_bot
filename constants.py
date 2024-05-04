@@ -27,6 +27,13 @@ SMTP_PASSWORD = os.environ["SENDER_EMAIL_PASS"]
 BASE_FOLDER = "history"
 SUB_FOLDER_AVITO = "avito"
 SUB_FOLDER_TG = "telegram"
+TC_SESSIONS_DIRECTORY = "telegram_client_sessions"
+
+
+class TCEngine:
+    GROUP_MESSAGE = "tg_client_group_messages"
+    PRIVATE_MESSAGE = "tg_client_private_messages"
+
 
 # Email message const
 EMAIL_RECEIVER = os.environ["RECEIVER_EMAIL_ADDRESS"]
@@ -39,3 +46,6 @@ NON_TEXT_EMAIL_MESSAGE_SUBJECT = "Не текстовое сообщение"
 NON_TEXT_EMAIL_MESSAGE_BODY = (
     "Пользователь прислал не текстовое сообщение в ответ на сообщение:"
 )
+
+# Telegram client
+

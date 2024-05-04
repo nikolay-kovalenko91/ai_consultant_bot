@@ -1,8 +1,9 @@
+from typing import Generator
+
 from database import session_maker
-from tc.tc_client_model import ClientModel
-from tc.tc_constants import State, TypeMessage
-from tc.tc_repository import add_telegram_account
-from tc.tc_telegram_json import TelegramJSON
+from tc.client_model import ClientModel, State, TypeMessage
+from tc.repository import add_telegram_account
+from tc.telegram_json import TelegramJSON
 
 import time
 
@@ -10,7 +11,9 @@ telegram_json = TelegramJSON()
 DELAY = 5
 
 
-def listen_client(client: ClientModel, only_registration: bool = False):
+def accounts_events_client(
+    client: ClientModel, only_registration: bool = False
+) -> Generator:
     time.sleep(DELAY)
     while True:
         event = telegram_json.td_json_client_receive(client.client_id)

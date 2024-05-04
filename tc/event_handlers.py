@@ -1,16 +1,19 @@
 import logging
+from typing import Optional, Dict, Any
 
+from constants import TC_SESSIONS_DIRECTORY
 from database import session_maker
-from message_handler import generate_chatgpt_answer
-from tc.tc_repository import get_prompt_data, get_account_data
-from tc.tc_client_model import ClientModel
-from tc.tc_constants import TC_SESSIONS_DIRECTORY, TCEngine, State, TypeMessage
-from tc.tc_telegram_json import TelegramJSON
+from tc.messages import create_group_message, create_private_message
+from tc.repository import get_account_data
+from tc.client_model import ClientModel, State, TypeMessage
+from tc.telegram_json import TelegramJSON
 
 telegram_json = TelegramJSON()
 
 
-def authorization_event_handle(client: ClientModel, event):
+def authorization_event_handle(
+    client: ClientModel, event: Dict[str, Any]
+) -> None:
     client_id = client.client_id
     phone = client.phone
 
@@ -48,33 +51,41 @@ def authorization_event_handle(client: ClientModel, event):
         logging.info(f"Сессия аккаунта {phone} завершена")
 
 
-def user_event_handle(client: ClientModel, event):
+def user_event_handle(
+    client: ClientModel, event: Dict[str, Any]
+) -> Optional[dict]:
     extra = event.get("@extra")
     if extra and extra.get("type") == "getMe":
         client.telegram_user_id = event.get("id")
         return {"result": State.Authorization.READY, "client": client}
 
 
-def error_event_handle(client: ClientModel, event):
-    logging.warning(f"{client.phone}: {event}")
+def error_event_handle(
+    client: ClientModel, event: Dict[str, Any]
+) -> Optional[dict]:
+    logging.warning(f"Got error {event=} for {client.phone=}")
     client_id = client.client_id
-    if event.get("message") == TypeMessage.Error.PHONE_CODE_INVALID:
+    error_message = event.get("message")
+    if error_message == TypeMessage.Error.PHONE_CODE_INVALID:
         code = input("Неверный код. Введите код повторно: ")
         telegram_json.send_code(client_id, code)
-    elif event.get("message") == TypeMessage.Error.PASSWORD_HASH_INVALID:
+    elif error_message == TypeMessage.Error.PASSWORD_HASH_INVALID:
         password = input("Неверный пароль. Введите пароль повторно: ")
         telegram_json.send_password(client_id, password)
-    elif event.get("message") == TypeMessage.Error.PHONE_CODE_EXPIRED:
+    elif error_message == TypeMessage.Error.PHONE_CODE_EXPIRED:
         return {
             "result": TypeMessage.Error.PHONE_CODE_EXPIRED,
             "client": client,
         }
-
-    elif TypeMessage.Error.LOCK_FILE in event.get("message"):
+    elif TypeMessage.Error.LOCK_FILE in error_message:
         return TypeMessage.Error.LOCK_FILE
+    else:
+        logging.warning(f"Unhandled error: {error_message}")
 
 
-def update_new_messages_handle(client: ClientModel, event):
+def update_new_messages_handle(
+    client: ClientModel, event: Dict[str, Any]
+) -> None:
     message_id = event.get("message").get("id")
     chat_id = event.get("message").get("chat_id")
     text = event.get("message").get("content").get("text")
@@ -85,61 +96,40 @@ def update_new_messages_handle(client: ClientModel, event):
 
     sender_user_id = event.get("message").get("sender_id").get("user_id")
 
-    logging.info(f"{client.phone}: {chat_id}_{sender_user_id} -> {text}")
+    logging.debug(
+        (f"Got text message for {client.phone}:"
+         f" {chat_id}_{sender_user_id}; {text=}")
+    )
 
-    if (
+    if not (
         text
         and not is_channel_post
         and sender_user_id != client.telegram_user_id
     ):
-        text = text.get("text")
+        return
 
-        with session_maker() as session:
-            account = get_account_data(session, client.telegram_user_id)
+    text = text.get("text")
 
-            answer = None
+    with session_maker() as session:
+        account = get_account_data(session, client.telegram_user_id)
 
-            # group message
-            if chat_id != sender_user_id:
-                if account.keywords:
-                    keywords = [
-                        word.strip().lower()
-                        for word in account.keywords.split(",")
-                        if word.strip()
-                    ]
-                    if any(keyword in text.lower() for keyword in keywords):
-                        prompt = get_prompt_data(
-                            session, account.group_message_prompt_id
-                        )
-                        if prompt:
-                            # answer = prompt
-                            answer = generate_chatgpt_answer(
-                                user_id=sender_user_id,
-                                message=text,
-                                engine=TCEngine.GROUP_MESSAGE,
-                                system_prompt=prompt,
-                            )
+        answer = None
 
-            # private message
-            else:
-                prompt = get_prompt_data(
-                    session, account.private_message_prompt_id
-                )
-                if prompt:
-                    # answer = prompt
-                    answer = generate_chatgpt_answer(
-                        user_id=sender_user_id,
-                        message=text,
-                        engine=TCEngine.PRIVATE_MESSAGE,
-                        system_prompt=prompt,
-                    )
+        is_group_chat = chat_id != sender_user_id
 
-            if answer:
-                telegram_json.send_text_message(
-                    client_id=client.client_id,
-                    chat_id=chat_id,
-                    text=answer,
-                    reply_to_message_id=message_id
-                    if chat_id != sender_user_id
-                    else 0,
-                )
+        if is_group_chat:
+            answer = create_group_message(account, sender_user_id, text)
+
+        else:
+            answer = create_private_message(account, sender_user_id, text)
+
+        if answer:
+            reply_to_message_id = (message_id if is_group_chat else 0)  # 0 -
+            # without reply mark
+
+            telegram_json.send_text_message(
+                client_id=client.client_id,
+                chat_id=chat_id,
+                text=answer,
+                reply_to_message_id=reply_to_message_id,
+            )

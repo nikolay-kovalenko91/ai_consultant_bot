@@ -6,6 +6,8 @@ services:
       - .env
     build:
       dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: avito_bot
     volumes:
       - ./database:/src/database
     command: ["python", "avito_bot.py"]
@@ -15,9 +17,21 @@ services:
       - .env
     build:
       dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: telegram_bot
     volumes:
       - ./database:/src/database
     command: ["python", "telegram_bot.py"]
+
+  telegram_client:
+    build:
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: telegram_client
+    volumes:
+      - ./database:/src/database
+      - ./telegram_client_sessions:/src/telegram_client_sessions
+    command: ["python", "telegram_client.py"]
     
   nocodb:
     image: nocodb/nocodb:latest

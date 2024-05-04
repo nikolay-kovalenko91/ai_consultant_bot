@@ -1,21 +1,20 @@
-from sqlalchemy.orm import Session
+import logging
+
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session, joinedload
 
 from typing import Sequence
-from tc.tc_client_model import ClientModel
 
-from database import TelegramClientAccount, Prompt
+from database import TelegramClientAccount
+from tc.client_model import ClientModel
 
 
 def get_telegram_accounts(session: Session) -> Sequence[TelegramClientAccount]:
     return session.query(TelegramClientAccount).all()
 
 
-def add_telegram_account(session: Session, client: ClientModel):
-    if (
-        not session.query(TelegramClientAccount)
-        .filter_by(phone=client.phone)
-        .first()
-    ):
+def add_telegram_account(session: Session, client: ClientModel) -> None:
+    try:
         account = TelegramClientAccount(
             telegram_user_id=client.telegram_user_id,
             phone=client.phone,
@@ -26,19 +25,17 @@ def add_telegram_account(session: Session, client: ClientModel):
         session.add(account)
         session.commit()
 
-
-def get_prompt_data(session: Session, prompt_id: int):
-    if not prompt_id:
-        return
-
-    prompt = session.query(Prompt).filter(Prompt.id == prompt_id).first()
-
-    return prompt.text if prompt else None
+    except IntegrityError:
+        logging.error(f"Account has been already saved: {client.phone}")
 
 
-def get_account_data(session: Session, telegram_user_id: int):
+def get_account_data(
+    session: Session, telegram_user_id: int
+) -> TelegramClientAccount:
     account: TelegramClientAccount = (
         session.query(TelegramClientAccount)
+        .options(joinedload(TelegramClientAccount.group_message_prompt))
+        .options(joinedload(TelegramClientAccount.private_message_prompt))
         .filter(TelegramClientAccount.telegram_user_id == telegram_user_id)
         .first()
     )

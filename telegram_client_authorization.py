@@ -1,7 +1,7 @@
 import logging
 
 from database import TelegramClientAccount
-from tc.tc_telegram_client import TelegramClient
+from tc.telegram_client import TelegramClient
 
 
 logging.basicConfig(
