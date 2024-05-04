@@ -56,5 +56,12 @@ if __name__ == "__main__":
                         accounts.append(
                             {"phone": account.phone, "listener": listener}
                         )
+                    else:
+                        logging.warning(
+                            (
+                                f"Account not added, it needs to be registered"
+                                f" first: {account.phone}/{account.name}"
+                            )
+                        )
 
         time.sleep(POLLING_INTERVAL)
