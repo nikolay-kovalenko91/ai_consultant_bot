@@ -46,6 +46,3 @@ NON_TEXT_EMAIL_MESSAGE_SUBJECT = "Не текстовое сообщение"
 NON_TEXT_EMAIL_MESSAGE_BODY = (
     "Пользователь прислал не текстовое сообщение в ответ на сообщение:"
 )
-
-# Telegram client
-
