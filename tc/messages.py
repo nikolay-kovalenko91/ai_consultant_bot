@@ -6,7 +6,7 @@ from message_handler import generate_chatgpt_answer
 
 
 def create_group_message(
-        account: TelegramClientAccount, sender_user_id: str, input_text: str
+    account: TelegramClientAccount, sender_user_id: str, input_text: str
 ) -> Optional[str]:
     if account.keywords:
         keywords = [
@@ -30,7 +30,7 @@ def create_group_message(
 
 
 def create_private_message(
-        account: TelegramClientAccount, sender_user_id: str, input_text: str
+    account: TelegramClientAccount, sender_user_id: str, input_text: str
 ) -> Optional[str]:
     prompt = account.private_message_prompt
     if prompt:
