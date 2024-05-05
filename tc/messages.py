@@ -23,9 +23,8 @@ def create_group_message(
                 user_id=sender_user_id,
                 message=input_text,
                 engine=TCEngine.GROUP_MESSAGE,
-                system_prompt=prompt,
+                system_prompt=prompt.text,
             )
-
             return answer
 
 
@@ -38,6 +37,6 @@ def create_private_message(
             user_id=sender_user_id,
             message=input_text,
             engine=TCEngine.PRIVATE_MESSAGE,
-            system_prompt=prompt,
+            system_prompt=prompt.text,
         )
         return answer
