@@ -58,7 +58,7 @@ if __name__ == "__main__":
                         accounts.append(
                             {
                                 "phone": account.phone,
-                                "events_client": events_client
+                                "events_client": events_client,
                             }
                         )
                         logging.info(
