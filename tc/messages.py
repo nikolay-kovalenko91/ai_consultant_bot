@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 
 from constants import TCEngine
@@ -18,14 +19,18 @@ def create_group_message(
             return
 
         prompt = account.group_message_prompt
-        if prompt:
-            answer = generate_chatgpt_answer(
-                user_id=sender_user_id,
-                message=input_text,
-                engine=TCEngine.GROUP_MESSAGE,
-                system_prompt=prompt.text,
-            )
-            return answer
+
+        if not prompt:
+            logging.error(f"Group message prompt not found for {account.id=}")
+            return
+
+        answer = generate_chatgpt_answer(
+            user_id=sender_user_id,
+            message=input_text,
+            engine=TCEngine.GROUP_MESSAGE,
+            system_prompt=prompt.text,
+        )
+        return answer
 
 
 def create_private_message(

@@ -8,7 +8,7 @@ class ClientModel:
 
     phone: str
     api_id: int
-    api_hash: str = None
+    api_hash: str
     account_id: Optional[int] = None
     telegram_user_id: Optional[int] = None
 

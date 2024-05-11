@@ -17,7 +17,7 @@ if __name__ == "__main__":
         api_id = input("Введите api_id: ")
         api_hash = input("Введите api_hash: ")
 
-        account: TelegramClientAccount = TelegramClientAccount()
+        account = TelegramClientAccount()
         account.phone = phone
         account.api_id = api_id
         account.api_hash = api_hash

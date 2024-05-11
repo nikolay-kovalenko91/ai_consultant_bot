@@ -27,7 +27,9 @@ accounts = []
 def run_account_listeners():
     while True:
         for a in accounts:
-            next(a.get("listener"))
+            e_client = a.get("events_client")
+            if e_client:
+                next(e_client)
 
 
 if __name__ == "__main__":
@@ -52,16 +54,22 @@ if __name__ == "__main__":
                         f"{TC_SESSIONS_DIRECTORY}/{account.phone}"
                     ):
                         telegram_client = TelegramClient(account)
-                        listener = telegram_client.init()
+                        events_client = telegram_client.init()
                         accounts.append(
-                            {"phone": account.phone, "listener": listener}
+                            {
+                                "phone": account.phone,
+                                "events_client": events_client
+                            }
                         )
+                        logging.info(
+                            f"Start listening account:"
+                            f" {account.phone}/{account.name}"
+                        )
+
                     else:
                         logging.warning(
-                            (
-                                f"Account not added, it needs to be registered"
-                                f" first: {account.phone}/{account.name}"
-                            )
+                            f"Account not added, it needs to be registered"
+                            f" first: {account.phone}/{account.name}"
                         )
 
         time.sleep(POLLING_INTERVAL)

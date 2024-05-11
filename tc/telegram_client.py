@@ -1,6 +1,5 @@
 import os
 import shutil
-from dataclasses import dataclass
 from typing import Generator
 
 from constants import TC_SESSIONS_DIRECTORY
@@ -34,9 +33,9 @@ telegram_json.add_event_handler(
 )
 
 
-@dataclass
 class TelegramClient:
-    telegram_account: TelegramClientAccount
+    def __init__(self, telegram_account: TelegramClientAccount):
+        self.telegram_account: TelegramClientAccount = telegram_account
 
     def init(self, only_registration: bool = False) -> Generator:
         client = telegram_json.client_create(

@@ -55,7 +55,7 @@ class TelegramClientAccount(Base):
     name: Mapped[Optional[str]]
     is_active: Mapped[bool]
 
-    telegram_user_id: Mapped[int]
+    telegram_user_id = Column(Integer, unique=True)
     phone = Column(String, unique=True)
     api_id: Mapped[int]
     api_hash: Mapped[str]

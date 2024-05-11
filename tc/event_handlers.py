@@ -5,7 +5,7 @@ from constants import TC_SESSIONS_DIRECTORY
 from database import session_maker
 from tc.messages import create_group_message, create_private_message
 from tc.repository import get_account_data
-from tc.dataclasses import ClientModel, State, TypeMessage
+from tc.data_classes import ClientModel, State, TypeMessage
 from tc.telegram_json import TelegramJSON
 
 telegram_json = TelegramJSON()
@@ -97,10 +97,8 @@ def update_new_messages_handle(
     sender_user_id = event.get("message").get("sender_id").get("user_id")
 
     logging.debug(
-        (
-            f"Got text message for {client.phone}:"
-            f" {chat_id}_{sender_user_id}; {text=}"
-        )
+        f"Got text message for {client.phone}:"
+        f" {chat_id}_{sender_user_id}; {text=}"
     )
 
     if not (
@@ -113,9 +111,15 @@ def update_new_messages_handle(
     text = text.get("text")
 
     with session_maker() as session:
-        account = get_account_data(session, client.telegram_user_id)
+        try:
+            account = get_account_data(session, client.telegram_user_id)
 
-        answer = None
+        except Exception as ex:
+            logging.error(
+                f"Error getting account {client.telegram_user_id=}"
+                f' while processing message {event.get("message")}'
+                f" {ex=}"
+            )
 
         is_group_chat = chat_id != sender_user_id
 

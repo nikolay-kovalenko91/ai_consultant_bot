@@ -1,7 +1,7 @@
 from typing import Generator
 
 from database import session_maker
-from tc.dataclasses import ClientModel, State, TypeMessage
+from tc.data_classes import ClientModel, State, TypeMessage
 from tc.repository import add_telegram_account
 from tc.telegram_json import TelegramJSON
 
@@ -28,7 +28,7 @@ def accounts_events_client(
                     telegram_json.client_destroy(client.client_id)
                     time.sleep(DELAY)
                     with session_maker() as session:
-                        add_telegram_account(session, result.get("client"))
+                        add_telegram_account(session, result["client"])
 
                     yield True
 
@@ -41,4 +41,6 @@ def accounts_events_client(
 
                     yield True
 
+                else:
+                    yield
         yield
