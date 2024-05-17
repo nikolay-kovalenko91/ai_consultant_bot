@@ -7,6 +7,7 @@ from constants import (
     SUB_FOLDER_TG,
     LOGGING_LEVEL,
     POLLING_INTERVAL,
+    DELAY,
 )
 from message_handler import generate_chatgpt_answer
 from telebot import types
@@ -271,11 +272,13 @@ def start_bot():
                         else:
                             logger.warning("Non-text message received")
 
-                    time.sleep(max(POLLING_INTERVAL / bots_count, 1))
+                    time.sleep(DELAY)
 
             except Exception as e:
                 logger.error(f"Error in start_bot function: {e}")
                 time.sleep(5)
+
+            time.sleep(max(POLLING_INTERVAL - DELAY * bots_count, 1))
 
 
 if __name__ == "__main__":
