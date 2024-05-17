@@ -8,7 +8,9 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./database:/src/database
+      - ./history:/src/history
     command: ["python", "avito_bot.py"]
+    restart: on-failure
 
   telegram_bot:
     env_file:
@@ -17,7 +19,9 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./database:/src/database
+      - ./history:/src/history
     command: ["python", "telegram_bot.py"]
+    restart: on-failure
     
   nocodb:
     image: nocodb/nocodb:latest
@@ -25,3 +29,4 @@ services:
       - "8080:8080"
     volumes:
       - ./database:/usr/src/app/database
+    restart: on-failure
