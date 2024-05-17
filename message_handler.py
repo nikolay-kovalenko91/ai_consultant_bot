@@ -55,7 +55,7 @@ def get_or_create_history(
     file_path = f"{folder_path}/history.json"
 
     if not os.path.exists(folder_path):
-        os.mkdir(folder_path)
+        os.makedirs(folder_path)
 
     if not os.path.exists(file_path):
         with open(file_path, "w") as file:
