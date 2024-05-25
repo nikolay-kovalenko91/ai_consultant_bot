@@ -26,6 +26,10 @@ accounts = []
 
 def run_account_listeners():
     while True:
+        if not accounts:
+            time.sleep(1)
+            continue
+
         for a in accounts:
             e_client = a.get("events_client")
             if e_client:
