@@ -8,6 +8,7 @@ load_dotenv()
 LOGGING_LEVEL = os.getenv("LOGGING_LEVEL", "INFO").upper()
 POLLING_INTERVAL = int(os.environ.get("POLLING_INTERVAL", 10))
 BREAK_TIME = int(os.environ.get("BREAK_TIME", 3))
+DELAY = float(os.environ.get("DELAY", 0.5))
 
 # Avito
 DATABASE_DNS = os.environ.get("DATABASE_DNS", "sqlite:///database/database.db")
