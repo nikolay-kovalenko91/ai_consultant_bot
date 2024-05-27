@@ -48,6 +48,36 @@ class TelegramAccount(Base):
     prompt = relationship("Prompt", back_populates="telegram_accounts")
 
 
+class TelegramClientAccount(Base):
+    __tablename__ = "telegram_client_accounts"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[Optional[str]]
+    is_active: Mapped[bool]
+
+    telegram_user_id = Column(Integer, unique=True)
+    phone = Column(String, unique=True)
+    api_id: Mapped[int]
+    api_hash: Mapped[str]
+
+    private_message_prompt_id = Column(Integer, ForeignKey("prompts.id"))
+    group_message_prompt_id = Column(Integer, ForeignKey("prompts.id"))
+
+    private_message_prompt = relationship(
+        "Prompt",
+        foreign_keys=[private_message_prompt_id],
+        back_populates="telegram_client_accounts_private",
+    )
+
+    group_message_prompt = relationship(
+        "Prompt",
+        foreign_keys=[group_message_prompt_id],
+        back_populates="telegram_client_accounts_group",
+    )
+
+    keywords: Mapped[Optional[str]]
+
+
 class Prompt(Base):
     __tablename__ = "prompts"
 
@@ -59,6 +89,18 @@ class Prompt(Base):
         "TelegramAccount", back_populates="prompt"
     )
     avito_accounts = relationship("AvitoAccounts", back_populates="prompt")
+
+    telegram_client_accounts_private = relationship(
+        "TelegramClientAccount",
+        foreign_keys=[TelegramClientAccount.private_message_prompt_id],
+        back_populates="private_message_prompt",
+    )
+
+    telegram_client_accounts_group = relationship(
+        "TelegramClientAccount",
+        foreign_keys=[TelegramClientAccount.group_message_prompt_id],
+        back_populates="group_message_prompt",
+    )
 
 
 class Faq(Base):

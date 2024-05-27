@@ -73,6 +73,30 @@ To see logs without sending actual API calls, run the Avito bot in dry mode:
 python avito_bot.py --dry
 ```
 
+## Telegram clients
+
+To launch the Telegram clients, run:
+
+```bash
+python telegram_client.py
+```
+
+## Authorization of Telegram clients
+
+For registering accounts:
+<br>
+- Enter the command:
+```bash
+python telegram_client_authorization.py
+```
+- Enter the phone number (+79101234567)
+- Enter api_id
+- Enter api_hash
+- Enter the security code
+- Enter the password (if two-factor authentication is installed)
+<br>After a few seconds, an account entry will appear in the database.
+- Set up prompts in the database
+
 ## Running the Bots with Docker
 
 To launch the Telegram and Avito bots together with docker, use:

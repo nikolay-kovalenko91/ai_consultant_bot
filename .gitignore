@@ -46,3 +46,6 @@ docker-compose.override.yml
 
 # database
 database/
+
+# telegram sessions
+telegram_client_sessions/
