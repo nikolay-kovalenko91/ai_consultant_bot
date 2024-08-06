@@ -12,14 +12,13 @@ from constants import (
     NON_TEXT_EMAIL_MESSAGE_BODY,
     NON_TEXT_EMAIL_MESSAGE_SUBJECT,
     GPT_ERROR_CASE_MESSAGE,
+    CHATGPT_VERSION,
 )
 import logging
 from typing import List, Dict
 import time
 
-
 logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
-
 
 openai.api_key = OPENAI_API_KEY
 
@@ -99,14 +98,14 @@ def get_chat_completion(history: List[Dict[str, str]]) -> str:
     """
     try:
         completion = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-16k",
+            model=CHATGPT_VERSION,
             messages=history,
         )
     except openai.error.RateLimitError:
         logging.warning("Got ChatGPT RateLimitError. Retrying...")
         time.sleep(61)
         completion = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-16k",
+            model=CHATGPT_VERSION,
             messages=history,
         )
     except openai.error.InvalidRequestError as e:
