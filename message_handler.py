@@ -42,7 +42,10 @@ def check_contact_number(text: str) -> bool:
 
 
 def get_or_create_history(
-    user_id: str, engine: str, chat: str, system_prompt: str
+    user_id: str,
+    engine: str,
+    chat: str | None,
+    system_prompt: str,
 ) -> tuple[str, list]:
     """
     Get existing chat history or create a new one if not exists
@@ -78,7 +81,12 @@ def handle_nontext_message(
     Gets last message from chat history and sends to manager
     """
     # Make sure user have account, even if it not started bot.
-    file_path, history = get_or_create_history(user_id, engine, system_prompt)
+    file_path, history = get_or_create_history(
+        user_id=user_id,
+        engine=engine,
+        chat=None,
+        system_prompt=system_prompt,
+    )
 
     last_gpt_message = None
     for message in reversed(history):

@@ -17,6 +17,7 @@ DATABASE_DNS = os.environ.get("DATABASE_DNS", "sqlite:///database/database.db")
 
 # OpenAI
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
+# FIXME: delete SYSTEM_PROMPT env(now prompts stored in DB)
 SYSTEM_PROMPT = os.environ["SYSTEM_PROMPT"]
 GPT_ERROR_CASE_MESSAGE = "Мы ответим вам как можно скорее"
 
