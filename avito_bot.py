@@ -23,9 +23,11 @@ from utils import generate_gpt_prompt
 
 access_tokens: dict[str, str] = dict()
 
-logging.basicConfig(format="%(asctime)s - %(message)s")
+logging.basicConfig(
+    format="%(asctime)s - %(message)s",
+    level=LOGGING_LEVEL,
+)
 logger = logging.getLogger(__name__)
-logger.setLevel(level=LOGGING_LEVEL)
 
 
 def backoff_decorator(
