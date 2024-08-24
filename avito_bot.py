@@ -81,7 +81,10 @@ def get_access_token(account: AvitoAccounts) -> None:
 
     # Make the API call
     response = requests.post(
-        "https://api.avito.ru/token", headers=headers, data=data
+        "https://api.avito.ru/token",
+        headers=headers,
+        data=data,
+        timeout=60,
     )
 
     if response.status_code == 200:
@@ -101,8 +104,7 @@ def send_message_back(
     """
     Function to send message back to user
     """
-
-    # Set up headers
+    logger.debug("Sending message back to user...")
     headers = {
         "Authorization": f"Bearer {access_tokens.get(account.user_id)}",
         "Content-Type": "application/json",
@@ -119,6 +121,7 @@ def send_message_back(
         ),
         headers=headers,
         json=payload,
+        timeout=60,
     )
 
     # Check the response status
@@ -128,7 +131,7 @@ def send_message_back(
         # Handle 403 error by calling  function and call api back
         logger.debug("Need to get auth token")
         get_access_token(account)
-        send_message_back(reply_message, chat_id, retry=False)
+        send_message_back(account, reply_message, chat_id, retry=False)
     else:
         logger.error(
             f"Send message back is failed. Status:{response.status_code}. "
@@ -138,17 +141,18 @@ def send_message_back(
 
 def read_message(account: AvitoAccounts, chat_id: str, retry=True) -> None:
     """
-    Function to make message to be read
+    Function to set message to "read"
     """
-    # Set up headers for API request
-    headers = {"Authorization": f"Bearer {access_tokens.get(account.user_id)}"}
+    logger.debug("Setting  the message to 'read'...")
 
+    headers = {"Authorization": f"Bearer {access_tokens.get(account.user_id)}"}
     response = requests.post(
         (
             f"https://api.avito.ru/messenger/v1/accounts/{account.user_id}/"
             f"chats/{chat_id}/read"
         ),
         headers=headers,
+        timeout=60,
     )
     if response.status_code == 200:
         logger.debug(f"Message from {chat_id=} has been read")
@@ -156,10 +160,10 @@ def read_message(account: AvitoAccounts, chat_id: str, retry=True) -> None:
         # Handle 403 error by calling  function and call api back
         logger.debug("Need to get auth token")
         get_access_token(account)
-        read_message(chat_id, retry=False)
+        read_message(account, chat_id, retry=False)
     else:
         logger.error(
-            f"Read message is failed. Status:{response.status_code}. "
+            f"Reading message is failed. Status:{response.status_code}. "
             f"Error: {response.text}"
         )
 
@@ -170,24 +174,23 @@ def get_new_messages(
     """
     Function to get new messages from Avito
     """
+    logger.debug(f"Getting new messages for {account.id=}")
 
-    # Set up headers for API request
     headers = {"Authorization": f"Bearer {access_tokens.get(account.user_id)}"}
-
-    # Make the API call
     response = requests.get(
         (
             f"https://api.avito.ru/messenger/v2/accounts/{account.user_id}/"
             f"chats?unread_only=true"
         ),
         headers=headers,
+        timeout=60,
     )
 
-    # Check the response status
     if response.status_code == 200:
         # Iterate through each message in the response
         messages = response.json()["chats"]
         logger.info(f"Fetched {len(messages)} messages from Avito...")
+
         for message in messages:
             try:
                 chat_id = message["id"]
@@ -211,6 +214,9 @@ def get_new_messages(
                     )
                 else:
                     if not args.dry:
+                        logger.warning(
+                            f"Got non-text message from chat ->'{chat_id}'"
+                        )
                         handle_nontext_message(
                             user_id=chat_id,
                             engine=SUB_FOLDER_AVITO,
@@ -220,9 +226,9 @@ def get_new_messages(
                             ),
                         )
                         read_message(account, chat_id, retry=True)
-                    logger.warning(
-                        f"Got non-text message from chat ->'{chat_id}'"
-                    )
+                        logger.debug(
+                            f"Non-text message answered ->'{chat_id}'"
+                        )
             except Exception:
                 logger.exception(
                     "Error occured in proccess: " f"message:{message}"
@@ -259,9 +265,9 @@ if __name__ == "__main__":
         logger.info("Running in dry mode. Performing dry run actions...")
 
     while True:
+        logger.debug("Ready to process accounts...")
         with session_maker() as session:
             active_accounts = get_active_avito_accounts(session)
-
             logger.debug(
                 f"Got {len(active_accounts)} active accounts to process"
             )

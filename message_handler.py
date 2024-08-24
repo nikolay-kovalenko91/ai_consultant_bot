@@ -18,7 +18,7 @@ import logging
 from typing import List, Dict
 import time
 
-logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 openai.api_key = OPENAI_API_KEY
 
@@ -104,10 +104,12 @@ def get_chat_completion(history: List[Dict[str, str]]) -> str:
     """
     Generates a chat completion using the OpenAI API
     """
+    logger.debug("Generating chat completion...")
     try:
         completion = openai.ChatCompletion.create(
             model=CHATGPT_VERSION,
             messages=history,
+            timeout=60,
         )
     except openai.error.RateLimitError:
         logging.warning("Got ChatGPT RateLimitError. Retrying...")
@@ -115,6 +117,7 @@ def get_chat_completion(history: List[Dict[str, str]]) -> str:
         completion = openai.ChatCompletion.create(
             model=CHATGPT_VERSION,
             messages=history,
+            timeout=60,
         )
     except openai.error.InvalidRequestError as e:
         logging.error(f"ChatGPT Invalid request error: {e}")
@@ -148,9 +151,11 @@ def generate_chatgpt_answer(
 
     # Check if text is a valid phone number or not
     if check_contact_number(message):
+        logger.debug("Contact number found...")
         history.append({"role": "assistant", "content": CLOSING_MESSAGE})
         with open(file_path, "w") as file:
             json.dump(history, file, indent=2, ensure_ascii=False)
+
         return CLOSING_MESSAGE
 
     # Else case text will be sent to GPT
