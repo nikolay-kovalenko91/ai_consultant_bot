@@ -66,7 +66,7 @@ def generate_gpt_prompt(session, account: AvitoAccounts) -> str:
 
     if accounts_faqs:
         return (
-            f"{account.prompt}\n"
+            f"{account.prompt.text}\n"
             f"Проанализируйте таблицу с ответами на частые вопросы:\n"
             f"{accounts_faqs}"
         )
