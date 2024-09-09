@@ -17,10 +17,7 @@ import time
 from repository import get_active_telegram_bot_accounts
 from dataclasses import dataclass
 
-logging.basicConfig(
-    format="%(asctime)s - %(message)s",
-    level=LOGGING_LEVEL,
-)
+logging.basicConfig(level=LOGGING_LEVEL)
 logger = logging.getLogger(__name__)
 
 

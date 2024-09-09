@@ -23,10 +23,7 @@ from utils import generate_gpt_prompt
 
 access_tokens: dict[str, str] = dict()
 
-logging.basicConfig(
-    format="%(asctime)s - %(message)s",
-    level=LOGGING_LEVEL,
-)
+logging.basicConfig(level=LOGGING_LEVEL)
 logger = logging.getLogger(__name__)
 
 
