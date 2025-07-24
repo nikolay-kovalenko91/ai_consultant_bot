@@ -91,7 +91,10 @@ def get_access_token(account: AvitoAccounts) -> None:
         access_token = response.json().get("access_token")
         access_tokens[account.user_id] = access_token
     else:
-        logger.error(f"Token error : {response.status_code}, {response.text}")
+        logger.error(
+            f"Token error for {account.id=}; {account.name=}:"
+            f"{response.status_code}, {response.text}"
+        )
 
 
 def send_message_back(
@@ -133,8 +136,9 @@ def send_message_back(
         send_message_back(account, reply_message, chat_id, retry=False)
     else:
         logger.error(
-            f"Send message back is failed. Status:{response.status_code}. "
-            f"Error: {response.text}. Payload: {payload}"
+            f"Send message back is failed for {account.id=}; {account.name=};"
+            f"Status:{response.status_code}. Error: {response.text}. "
+            f"Payload: {payload}"
         )
 
 
@@ -162,8 +166,8 @@ def read_message(account: AvitoAccounts, chat_id: str, retry=True) -> None:
         read_message(account, chat_id, retry=False)
     else:
         logger.error(
-            f"Reading message is failed. Status:{response.status_code}. "
-            f"Error: {response.text}"
+            f"Reading message is failed for {account.id=}, {account.name=};"
+            f"Status:{response.status_code}. Error: {response.text}"
         )
 
 
@@ -188,7 +192,10 @@ def get_new_messages(
     if response.status_code == 200:
         # Iterate through each message in the response
         messages = response.json()["chats"]
-        logger.info(f"Fetched {len(messages)} messages from Avito...")
+        logger.info(
+            f"Fetched {len(messages)} messages from "
+            f"{account.id=}; {account.name=}..."
+        )
 
         for message in messages:
             try:
@@ -229,9 +236,7 @@ def get_new_messages(
                             f"Non-text message answered ->'{chat_id}'"
                         )
             except Exception:
-                logger.exception(
-                    "Error occured in proccess: " f"message:{message}"
-                )
+                logger.exception(f"Error occured in proccess; {message=}")
 
     # If token gets expired (403 Forbidden)
     elif response.status_code == 403 and retry:
@@ -243,8 +248,8 @@ def get_new_messages(
     else:
         # Log errors for other status codes
         logger.error(
-            "Get new messages call failed with status code"
-            f" {response.status_code}. Error message: {response.text}"
+            "Get new messages call for {account.id=}, {account.name=} "
+            f"failed with {response.status_code=}; {response.text=}"
         )
 
 
