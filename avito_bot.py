@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from constants import (
     BASE_FOLDER,
+    SENTENSES_TO_IGNORE,
     SUB_FOLDER_AVITO,
     POLLING_INTERVAL,
     BREAK_TIME,
@@ -204,13 +205,21 @@ def get_new_messages(
                 message_type = message_content["type"]
 
                 if message_type == "text" or message_type == "system":
+                    message_text = message_content["content"]["text"]
+                    if any(s in message_text for s in SENTENSES_TO_IGNORE):
+                        logger.info(
+                            f"Skipping message={message_text}; {chat_id=}"
+                        )
+                        return
+
                     # Send message to user only in regular mode
                     result = generate_chatgpt_answer(
                         user_id=chat_id,
-                        message=message_content["content"]["text"],
+                        message=message_text,
                         engine=SUB_FOLDER_AVITO,
                         system_prompt=generate_gpt_prompt(session, account),
                     )
+
                     if not args.dry:
                         send_message_back(account, result, chat_id, retry=True)
                         time.sleep(BREAK_TIME)
