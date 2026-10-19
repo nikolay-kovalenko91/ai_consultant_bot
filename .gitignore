@@ -49,3 +49,23 @@ database/
 
 # telegram sessions
 telegram_client_sessions/
+
+# Local secrets, histories, indexes, and generated runtime artifacts
+.env.*
+!.env.example
+history/*
+!history/README.md
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3-wal
+*.sqlite3-shm
+*.session
+*.session-journal
+*.binlog
+*.log
+logs/
+chroma_data/
